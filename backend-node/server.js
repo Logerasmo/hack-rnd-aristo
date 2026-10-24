@@ -3,7 +3,7 @@ const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const { execFile } = require('child_process');
+const { execFile, spawn } = require('child_process');
 
 const app = express();
 app.use(cors());
@@ -13,19 +13,43 @@ const VSCODE_JAVA = 'C:\\Users\\igori\\.vscode\\extensions\\redhat.java-1.58.0-w
 const JAVA_CMD = fs.existsSync(VSCODE_JAVA) ? VSCODE_JAVA : 'java';
 
 const VSCODE_JAVAC = VSCODE_JAVA.replace('java.exe', 'javac.exe');
-const JAVAC_CMD = fs.existsSync(VSCODE_JAVAC) ? VSCODE_JAVAC : 'javac';
+const HAS_VSCODE_JAVAC = fs.existsSync(VSCODE_JAVAC);
 
-app.post('/api/compile/run', (req, res) => {
-    const { files, mainClass, stdin = '' } = req.body;
+// храним запущенные процессы по id сессии для интерактивного Scanner
+const activeProcesses = new Map();
+
+app.post('/api/compile/stream', (req, res) => {
+    const { files, mainClass, sessionId } = req.body;
+
+    // заголовки для мгновенной потоковой передачи без буферизации
+    res.setHeader('Content-Type', 'text/event-stream; charset=utf-8');
+    res.setHeader('Cache-Control', 'no-cache, no-transform');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('X-Accel-Buffering', 'no');
+    if (typeof res.flushHeaders === 'function') {
+        res.flushHeaders();
+    }
+
+    const sendEvent = (type, text) => {
+        if (!res.writableEnded) {
+            res.write(`data: ${JSON.stringify({ type, text })}\n\n`);
+        }
+    };
 
     if (!files || Object.keys(files).length === 0) {
-        return res.json({ output: null, error: 'Нет файлов для запуска' });
+        sendEvent('error', 'Нет файлов для запуска');
+        return res.end();
+    }
+
+    // если старый процесс с этим sessionId еще запущен — завершаем его
+    if (activeProcesses.has(sessionId)) {
+        try { activeProcesses.get(sessionId).kill(); } catch (e) {}
+        activeProcesses.delete(sessionId);
     }
 
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'java-run-'));
 
     try {
-        // Сохраняем все файлы проекта в кодировке UTF-8 с сохранением структуры папок
         for (const [relativePath, content] of Object.entries(files)) {
             const normalizedRelPath = relativePath.replace(/\\/g, '/');
             const fullFilePath = path.join(tempDir, normalizedRelPath);
@@ -49,70 +73,111 @@ app.post('/api/compile/run', (req, res) => {
         const hasSrcRoot = mainFileRelPath.startsWith('src/');
         const sourceRootDir = hasSrcRoot ? path.join(tempDir, 'src') : tempDir;
 
-        // Получаем содержимое активного файла
         const absoluteActivePath = path.join(sourceRootDir, mainFileRelPath);
-        const fileContent = fs.existsSync(absoluteActivePath) 
-            ? fs.readFileSync(absoluteActivePath, 'utf8') 
+        const fileContent = fs.existsSync(absoluteActivePath)
+            ? fs.readFileSync(absoluteActivePath, 'utf8')
             : Object.values(files)[0];
 
-        // УМНЫЙ АНАЛИЗ: находим имя public класса внутри файла (например, "public class Main")
+        // определяем имя главного класса внутри файла (чтобы файл vtoray.java с public class Main работал без ошибок)
         const publicClassMatch = fileContent.match(/public\s+class\s+(\w+)/);
-        const className = publicClassMatch ? publicClassMatch[1] : path.basename(mainFileRelPath, '.java');
-        
-        // Создаем правильный файл для компиляции с именем класса, чтобы обйти ограничение Java
+        const anyClassMatch = fileContent.match(/class\s+(\w+)/);
+        const className = publicClassMatch
+            ? publicClassMatch[1]
+            : (anyClassMatch ? anyClassMatch[1] : path.basename(mainFileRelPath, '.java'));
+
+        const workDir = fs.existsSync(path.dirname(absoluteActivePath))
+            ? path.dirname(absoluteActivePath)
+            : tempDir;
+
         const targetFileName = `${className}.java`;
-        const targetFilePath = path.join(path.dirname(absoluteActivePath), targetFileName);
+        const targetFilePath = path.join(workDir, targetFileName);
+
+        // удаляем исходный файл с неправильным именем в этой же папке, чтобы не было дубликата класса Main
+        if (fs.existsSync(absoluteActivePath) && path.resolve(absoluteActivePath) !== path.resolve(targetFilePath)) {
+            try { fs.unlinkSync(absoluteActivePath); } catch (e) {}
+        }
         fs.writeFileSync(targetFilePath, fileContent, 'utf8');
 
-        // Компилируем файл по его реальному классу
-        execFile(JAVAC_CMD, ['-encoding', 'UTF-8', targetFileName], { cwd: path.dirname(targetFilePath) }, (compError, compStdout, compStderr) => {
-            if (compError) {
-                fs.rmSync(tempDir, { recursive: true, force: true });
-                return res.json({ output: null, error: compStderr || compError.message });
-            }
+        // функция запуска интерактивного процесса Java (живой stdin/stdout)
+        const startInteractiveJava = (args) => {
+            sendEvent('success', 'Компиляция успешна ✓');
+            sendEvent('info', 'Запуск программы...');
 
-            const runArgs = [
-                '-Dfile.encoding=UTF-8',
-                '-Dstdout.encoding=UTF-8',
-                '-Dstderr.encoding=UTF-8',
-                '-Dstdin.encoding=UTF-8',
-                '-Dsun.stdout.encoding=UTF-8',
-                '-Dsun.stderr.encoding=UTF-8',
-                '-cp',
-                '.',
-                className
-            ];
+            const child = spawn(JAVA_CMD, args, { cwd: workDir });
+            activeProcesses.set(sessionId, child);
 
-            const child = execFile(
-                JAVA_CMD,
-                runArgs,
-                { cwd: path.dirname(targetFilePath), timeout: 10000, encoding: 'utf8' },
-                (runError, stdout, stderr) => {
-                    fs.rmSync(tempDir, { recursive: true, force: true });
+            child.stdout.on('data', (chunk) => {
+                sendEvent('stdout', chunk.toString('utf8'));
+            });
 
-                    if (runError) {
-                        return res.json({
-                            output: stdout || null,
-                            error: stderr || runError.message
-                        });
-                    }
-                    res.json({
-                        output: stdout || 'Программа успешно выполнилась (без вывода в консоль).',
-                        error: stderr || null
-                    });
+            child.stderr.on('data', (chunk) => {
+                sendEvent('error', chunk.toString('utf8'));
+            });
+
+            child.on('error', (err) => {
+                sendEvent('error', 'Ошибка процесса Java: ' + err.message);
+            });
+
+            child.on('close', (code) => {
+                activeProcesses.delete(sessionId);
+                try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (e) {}
+                sendEvent('done', `Процесс завершен (код ${code ?? 0})`);
+                if (!res.writableEnded) {
+                    res.end();
                 }
-            );
+            });
 
-            if (child.stdin) {
-                if (stdin && stdin.length > 0) {
-                    child.stdin.write(stdin + '\n', 'utf8');
+            // ВАЖНО: слушаем закрытие ответа (res), а не запроса (req), чтобы процесс не убивался на старте!
+            res.on('close', () => {
+                if (!res.writableEnded && activeProcesses.has(sessionId)) {
+                    try { child.kill(); } catch (e) {}
+                    activeProcesses.delete(sessionId);
                 }
-                child.stdin.end();
-            }
-        });
+            });
+        };
+
+        const encodingFlags = [
+            '-Dfile.encoding=UTF-8',
+            '-Dstdout.encoding=UTF-8',
+            '-Dstderr.encoding=UTF-8',
+            '-Dstdin.encoding=UTF-8',
+            '-Dsun.stdout.encoding=UTF-8',
+            '-Dsun.stderr.encoding=UTF-8'
+        ];
+
+        // если есть javac.exe — компилируем через него, иначе запускаем напрямую через Java 25
+        if (HAS_VSCODE_JAVAC) {
+            execFile(VSCODE_JAVAC, ['-encoding', 'UTF-8', targetFileName], { cwd: workDir }, (compError, compStdout, compStderr) => {
+                if (compError) {
+                    try { fs.rmSync(tempDir, { recursive: true, force: true }); } catch (e) {}
+                    sendEvent('error', 'Ошибка компиляции:\n' + (compStderr || compError.message));
+                    sendEvent('done', '');
+                    return res.end();
+                }
+                startInteractiveJava([...encodingFlags, '-cp', '.', className]);
+            });
+        } else {
+            // прямой запуск исходника через java.exe (поддерживает и несколько классов в одном файле, и Scanner)
+            startInteractiveJava([...encodingFlags, targetFileName]);
+        }
+
     } catch (err) {
-        res.json({ output: null, error: 'Ошибка сервера: ' + err.message });
+        sendEvent('error', 'Ошибка сервера: ' + err.message);
+        res.end();
     }
+});
+
+// передача введенного числа в работающий Scanner по нажатию Enter
+app.post('/api/compile/input', (req, res) => {
+    const { sessionId, input } = req.body;
+    const child = activeProcesses.get(sessionId);
+
+    if (!child || !child.stdin) {
+        return res.status(400).json({ error: 'Нет активной программы, ожидающей ввода' });
+    }
+
+    child.stdin.write(input + '\n', 'utf8');
+    res.json({ ok: true });
 });
 
 const PORT = 8081;
