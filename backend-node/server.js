@@ -12,8 +12,10 @@ app.use(express.json());
 const VSCODE_JAVA = 'C:\\Users\\igori\\.vscode\\extensions\\redhat.java-1.58.0-win32-x64\\jre\\25.0.4.1-win32-x86_64\\bin\\java.exe';
 const JAVA_CMD = fs.existsSync(VSCODE_JAVA) ? VSCODE_JAVA : 'java';
 
+const VSCODE_JAVAC = VSCODE_JAVA.replace('java.exe', 'javac.exe');
+const JAVAC_CMD = fs.existsSync(VSCODE_JAVAC) ? VSCODE_JAVAC : 'javac';
+
 app.post('/api/compile/run', (req, res) => {
-    // принимаем stdin 
     const { files, mainClass, stdin = '' } = req.body;
 
     if (!files || Object.keys(files).length === 0) {
@@ -23,7 +25,7 @@ app.post('/api/compile/run', (req, res) => {
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'java-run-'));
 
     try {
-        // сохранение файлов проекта в  кодировке utf8
+        // Сохраняем все файлы проекта в кодировке UTF-8 с сохранением структуры папок
         for (const [relativePath, content] of Object.entries(files)) {
             const normalizedRelPath = relativePath.replace(/\\/g, '/');
             const fullFilePath = path.join(tempDir, normalizedRelPath);
@@ -31,7 +33,6 @@ app.post('/api/compile/run', (req, res) => {
             fs.writeFileSync(fullFilePath, content, 'utf8');
         }
 
-        // определение главного файла
         let rawMain = mainClass;
         if (typeof rawMain === 'object' && rawMain !== null) {
             rawMain = rawMain.path || rawMain.name || Object.keys(files)[0];
@@ -48,48 +49,67 @@ app.post('/api/compile/run', (req, res) => {
         const hasSrcRoot = mainFileRelPath.startsWith('src/');
         const sourceRootDir = hasSrcRoot ? path.join(tempDir, 'src') : tempDir;
 
-        // поддержка русского языка
-        const args = [
-            '-Dfile.encoding=UTF-8',
-            '-Dstdout.encoding=UTF-8',
-            '-Dstderr.encoding=UTF-8',
-            '-Dstdin.encoding=UTF-8',
-            '-Dsun.stdout.encoding=UTF-8',
-            '-Dsun.stderr.encoding=UTF-8',
-            mainFileRelPath
-        ];
+        // Получаем содержимое активного файла
+        const absoluteActivePath = path.join(sourceRootDir, mainFileRelPath);
+        const fileContent = fs.existsSync(absoluteActivePath) 
+            ? fs.readFileSync(absoluteActivePath, 'utf8') 
+            : Object.values(files)[0];
 
-        // запускаем процесс и сохраняем ссылку на него в переменную child, чтобы передать System.in
-        const child = execFile(
-            JAVA_CMD,
-            args,
-            { cwd: sourceRootDir, timeout: 10000, encoding: 'utf8' },
-            (error, stdout, stderr) => {
+        // УМНЫЙ АНАЛИЗ: находим имя public класса внутри файла (например, "public class Main")
+        const publicClassMatch = fileContent.match(/public\s+class\s+(\w+)/);
+        const className = publicClassMatch ? publicClassMatch[1] : path.basename(mainFileRelPath, '.java');
+        
+        // Создаем правильный файл для компиляции с именем класса, чтобы обйти ограничение Java
+        const targetFileName = `${className}.java`;
+        const targetFilePath = path.join(path.dirname(absoluteActivePath), targetFileName);
+        fs.writeFileSync(targetFilePath, fileContent, 'utf8');
+
+        // Компилируем файл по его реальному классу
+        execFile(JAVAC_CMD, ['-encoding', 'UTF-8', targetFileName], { cwd: path.dirname(targetFilePath) }, (compError, compStdout, compStderr) => {
+            if (compError) {
                 fs.rmSync(tempDir, { recursive: true, force: true });
+                return res.json({ output: null, error: compStderr || compError.message });
+            }
 
-                if (error) {
-                    // если программа упала на этапе компиляции
-                    return res.json({
-                        output: stdout || null, // cохрание, что успело вывестись в System.out до падения
-                        error: stderr || error.message
+            const runArgs = [
+                '-Dfile.encoding=UTF-8',
+                '-Dstdout.encoding=UTF-8',
+                '-Dstderr.encoding=UTF-8',
+                '-Dstdin.encoding=UTF-8',
+                '-Dsun.stdout.encoding=UTF-8',
+                '-Dsun.stderr.encoding=UTF-8',
+                '-cp',
+                '.',
+                className
+            ];
+
+            const child = execFile(
+                JAVA_CMD,
+                runArgs,
+                { cwd: path.dirname(targetFilePath), timeout: 10000, encoding: 'utf8' },
+                (runError, stdout, stderr) => {
+                    fs.rmSync(tempDir, { recursive: true, force: true });
+
+                    if (runError) {
+                        return res.json({
+                            output: stdout || null,
+                            error: stderr || runError.message
+                        });
+                    }
+                    res.json({
+                        output: stdout || 'Программа успешно выполнилась (без вывода в консоль).',
+                        error: stderr || null
                     });
                 }
+            );
 
-                // Возвращаем и System.out  System.err 
-                res.json({
-                    output: stdout || 'Программа успешно выполнилась (без вывода в консоль).',
-                    error: stderr || null
-                });
+            if (child.stdin) {
+                if (stdin && stdin.length > 0) {
+                    child.stdin.write(stdin + '\n', 'utf8');
+                }
+                child.stdin.end();
             }
-        );
-
-        // 6.  пользовательский ввод в System.in закрываем поток
-        if (child.stdin) {
-            if (stdin && stdin.length > 0) {
-                child.stdin.write(stdin + '\n', 'utf8');
-            }
-            child.stdin.end();
-        }
+        });
     } catch (err) {
         res.json({ output: null, error: 'Ошибка сервера: ' + err.message });
     }
@@ -97,5 +117,5 @@ app.post('/api/compile/run', (req, res) => {
 
 const PORT = 8081;
 app.listen(PORT, () => {
-    console.log(`🚀 да наконец-то нахуй оно заработало тут http://localhost:${PORT}`);
+    console.log(`🚀 Бэкенд запущен на http://localhost:${PORT}`);
 });
