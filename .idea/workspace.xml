@@ -4,13 +4,27 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="update1" />
+    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="tests0.4">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
+    <option name="RECENT_BRANCH_BY_REPOSITORY">
+      <map>
+        <entry key="$PROJECT_DIR$" value="main" />
+      </map>
+    </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="GitHubPullRequestSearchHistory">{
@@ -30,20 +44,26 @@
   &quot;associatedIndex&quot;: 6
 }</component>
   <component name="ProjectId" id="3L6baX1dskx0Ui4lfN6eeaWlKoQ" />
-  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Coding/proj&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.HackrndApplication.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "test",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/Coding/proj/backend-node",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.0",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
   }
-}</component>
+}]]></component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -69,7 +89,55 @@
       <option name="project" value="LOCAL" />
       <updated>1792832952073</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="update2">
+      <option name="closed" value="true" />
+      <created>1792833961011</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1792833961011</updated>
+    </task>
+    <task id="LOCAL-00004" summary="init tests">
+      <option name="closed" value="true" />
+      <created>1792839715343</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1792839715343</updated>
+    </task>
+    <task id="LOCAL-00005" summary="tests0.1">
+      <option name="closed" value="true" />
+      <created>1792842992161</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1792842992161</updated>
+    </task>
+    <task id="LOCAL-00006" summary="tests0.2">
+      <option name="closed" value="true" />
+      <created>1792858927401</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1792858927401</updated>
+    </task>
+    <task id="LOCAL-00007" summary="tests0.3">
+      <option name="closed" value="true" />
+      <created>1792858966892</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1792858966892</updated>
+    </task>
+    <task id="LOCAL-00008" summary="tests0.4">
+      <option name="closed" value="true" />
+      <created>1792861164759</created>
+      <option name="number" value="00008" />
+      <option name="presentableId" value="LOCAL-00008" />
+      <option name="project" value="LOCAL" />
+      <updated>1792861164759</updated>
+    </task>
+    <option name="localTasksCounter" value="9" />
     <servers />
   </component>
   <component name="VcsManagerConfiguration">
@@ -79,6 +147,12 @@
     </ignored-roots>
     <MESSAGE value="Initf" />
     <MESSAGE value="update1" />
-    <option name="LAST_COMMIT_MESSAGE" value="update1" />
+    <MESSAGE value="update2" />
+    <MESSAGE value="init tests" />
+    <MESSAGE value="tests0.1" />
+    <MESSAGE value="tests0.2" />
+    <MESSAGE value="tests0.3" />
+    <MESSAGE value="tests0.4" />
+    <option name="LAST_COMMIT_MESSAGE" value="tests0.4" />
   </component>
 </project>
