@@ -1,0 +1,54 @@
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"39240f32-1634-4f20-8e3b-e28d2c6a530e\" name=\"Changes\" comment=\"tests0.4\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Class\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"main\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;Logerasmo&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\">{\r\n  &quot;selectedUrlAndAccountId&quot;: {\r\n    &quot;url&quot;: &quot;https://github.com/Logerasmo/hack-rnd-aristo/&quot;,\r\n    &quot;accountId&quot;: &quot;c94a7ce3-4c4b-4853-b9d0-8bbd947778c5&quot;\r\n  }\r\n}</component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;customColor&quot;: &quot;&quot;,\r\n  &quot;associatedIndex&quot;: 6\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"3L6baX1dskx0Ui4lfN6eeaWlKoQ\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\">\r\n    <ConfirmationsSetting value=\"2\" id=\"Add\" />\r\n  </component>\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"Application.HackrndApplication.executor\": \"Run\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"git-widget-placeholder\": \"test\",\r\n    \"kotlin-language-version-configured\": \"true\",\r\n    \"last_opened_file_path\": \"D:/Coding/proj/backend-node\",\r\n    \"project.structure.last.edited\": \"Modules\",\r\n    \"project.structure.proportion\": \"0.0\",\r\n    \"project.structure.side.proportion\": \"0.0\",\r\n    \"settings.editor.selected.configurable\": \"project.propVCSSupport.DirectoryMappings\"\r\n  }\r\n}]]></component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"39240f32-1634-4f20-8e3b-e28d2c6a530e\" name=\"Changes\" comment=\"\" />\r\n      <created>1792777529556</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1792777529556</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"Initf\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792780860713</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792780860713</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"update1\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792832952073</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792832952073</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"update2\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792833961011</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792833961011</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"init tests\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792839715343</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792839715343</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00005\" summary=\"tests0.1\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792842992161</created>\r\n      <option name=\"number\" value=\"00005\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00005\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792842992161</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00006\" summary=\"tests0.2\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792858927401</created>\r\n      <option name=\"number\" value=\"00006\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00006\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792858927401</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00007\" summary=\"tests0.3\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792858966892</created>\r\n      <option name=\"number\" value=\"00007\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00007\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792858966892</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00008\" summary=\"tests0.4\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792861164759</created>\r\n      <option name=\"number\" value=\"00008\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00008\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792861164759</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"9\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <ignored-roots>\r\n      <path value=\"$PROJECT_DIR$/hackrnd\" />\r\n      <path value=\"$PROJECT_DIR$\" />\r\n    </ignored-roots>\r\n    <MESSAGE value=\"Initf\" />\r\n    <MESSAGE value=\"update1\" />\r\n    <MESSAGE value=\"update2\" />\r\n    <MESSAGE value=\"init tests\" />\r\n    <MESSAGE value=\"tests0.1\" />\r\n    <MESSAGE value=\"tests0.2\" />\r\n    <MESSAGE value=\"tests0.3\" />\r\n    <MESSAGE value=\"tests0.4\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"tests0.4\" />\r\n  </component>\r\n</project>
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision c61e36573eb5fb5a0d3cabe8cc19064622ffd00b)
++++ b/.idea/workspace.xml	(date 1792865638487)
+@@ -55,12 +55,12 @@
+   "keyToString": {
+     "Application.HackrndApplication.executor": "Run",
+     "RunOnceActivity.ShowReadmeOnStart": "true",
+-    "git-widget-placeholder": "test",
++    "git-widget-placeholder": "main",
+     "kotlin-language-version-configured": "true",
+     "last_opened_file_path": "D:/Coding/proj/backend-node",
+-    "project.structure.last.edited": "Modules",
++    "project.structure.last.edited": "Project",
+     "project.structure.proportion": "0.0",
+-    "project.structure.side.proportion": "0.0",
++    "project.structure.side.proportion": "0.2",
+     "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
+   }
+ }]]></component>
+@@ -139,6 +139,29 @@
+     </task>
+     <option name="localTasksCounter" value="9" />
+     <servers />
++  </component>
++  <component name="Vcs.Log.Tabs.Properties">
++    <option name="TAB_STATES">
++      <map>
++        <entry key="MAIN">
++          <value>
++            <State>
++              <option name="FILTERS">
++                <map>
++                  <entry key="branch">
++                    <value>
++                      <list>
++                        <option value="origin/code-import" />
++                      </list>
++                    </value>
++                  </entry>
++                </map>
++              </option>
++            </State>
++          </value>
++        </entry>
++      </map>
++    </option>
+   </component>
+   <component name="VcsManagerConfiguration">
+     <ignored-roots>

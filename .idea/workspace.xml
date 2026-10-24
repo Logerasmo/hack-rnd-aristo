@@ -4,9 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="tests0.4">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-    </list>
+    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="tests1.0" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -55,7 +53,7 @@
   "keyToString": {
     "Application.HackrndApplication.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "test",
+    "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/Coding/proj/backend-node",
     "project.structure.last.edited": "Modules",
@@ -153,6 +151,7 @@
     <MESSAGE value="tests0.2" />
     <MESSAGE value="tests0.3" />
     <MESSAGE value="tests0.4" />
-    <option name="LAST_COMMIT_MESSAGE" value="tests0.4" />
+    <MESSAGE value="tests1.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="tests1.0" />
   </component>
 </project>
