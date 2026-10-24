@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import Editor from '@monaco-editor/react';
+import CodeGraph from './components/graph/CodeGraph';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import {
@@ -669,29 +670,8 @@ export default function App() {
               </div>
 
               {/* поле в клетку под блок-схемы */}
-              <div
-                style={{
-                  flex: 1,
-                  position: 'relative',
-                  backgroundColor: isDarkMode ? '#0c1017' : '#ffffff',
-                  backgroundImage: `
-                    linear-gradient(to right, rgba(56, 139, 253, 0.07) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(56, 139, 253, 0.07) 1px, transparent 1px)
-                  `,
-                  backgroundSize: '24px 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 10px', backgroundColor: theme.panelBg, border: `1px solid ${theme.border}`, borderRadius: '6px', fontSize: '12px', color: theme.subText }}>
-                  <ZoomOut size={13} style={{ cursor: 'pointer' }} />
-                  <ZoomIn size={13} style={{ cursor: 'pointer' }} />
-                  <span>100%</span>
-                </div>
-                <span style={{ color: isDarkMode ? '#30363d' : '#8c959f', fontSize: '13px', userSelect: 'none' }}>
-                  Flowchart area ({activeFile?.name})
-                </span>
+              <div style={{ flex: 1, minWidth: 0, minHeight: 0, position: 'relative', overflow: 'hidden' }}>
+                <CodeGraph code={activeFile?.content ?? ''} fileName={activeFile?.name ?? 'Main.java'} isDarkMode={isDarkMode} />
               </div>
             </div>
 
