@@ -1,10 +1,11 @@
 package org.example.service;
 
-import com.github.javaparser.ast.body.FieldDeclaration;
+import com.github.javaparser.JavaParser;
+import com.github.javaparser.ParseResult;
+import com.github.javaparser.ParserConfiguration;
+import com.github.javaparser.ast.body.*;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
-import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
-import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.*;
 import org.example.service.tools.TreeNode;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,24 @@ import java.util.stream.Collectors;
 
 @Service
 public class ParserService {
+    static {
+        ParserConfiguration config = new ParserConfiguration()
+                .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17);
+        StaticJavaParser.setConfiguration(config);
+    }
+    private static String removeComments(String code) {
+        if (code == null) return null;
+
+        // 1. Удаляем многострочные комментарии /* ... */
+        String noBlockComments = code.replaceAll("(?s)/\\*.*?\\*/", "");
+
+
+        return noBlockComments
+                .replaceAll("//[^\n]*", "")
+                .replaceAll("[\\r\\n\\t]+", " ") // <-- Вот это исправит разрывы
+                .replaceAll("\\s{2,}", " ")      // Схлопываем лишние пробелы
+                .trim();
+    }
     private static boolean isSimple(Statement stmt) {
         return stmt instanceof ExpressionStmt      // присваивание, вызов метода, counter++
                 || stmt instanceof ReturnStmt         // return ...
@@ -88,6 +107,30 @@ public class ParserService {
                 constructor.getBody().getStatements().forEach(s -> ctorNode.addChild(getTree(s)));
                 root.addChild(ctorNode);
             }
+            else if (member instanceof com.github.javaparser.ast.body.ConstructorDeclaration constructor) {
+                String ctorHeader = "constructor: " + constructor.getNameAsString() + "(...)";
+                TreeNode ctorNode = new TreeNode(constructor, ctorHeader);
+                constructor.getBody().getStatements().forEach(s -> ctorNode.addChild(getTree(s)));
+                root.addChild(ctorNode);
+            }
+
+// Если это ENUM (добавить сюда)
+            else if (member instanceof EnumDeclaration enumDecl) {
+                TreeNode enumNode = new TreeNode(enumDecl, "enum: " + enumDecl.getNameAsString());
+                enumDecl.getEntries().forEach(entry ->
+                        enumNode.addChild(new TreeNode(entry, "constant: " + entry.getNameAsString()))
+                );
+                root.addChild(enumNode);
+            }
+
+// Если это RECORD (добавить сюда)
+            else if (member instanceof RecordDeclaration recordDecl) {
+                TreeNode recordNode = new TreeNode(recordDecl, "record: " + recordDecl.getNameAsString());
+                recordDecl.getParameters().forEach(param ->
+                        recordNode.addChild(new TreeNode(param, "component: " + param.getTypeAsString() + " " + param.getNameAsString()))
+                );
+                root.addChild(recordNode);
+            }
 
             // Другие члены (вложенные классы, enum'ы и т.д.) можно пока пропустить или обработать отдельно
         });
@@ -95,7 +138,20 @@ public class ParserService {
         return root;
     }
     public static CompilationUnit getCompilation(String code) {
-        return StaticJavaParser.parse(code);
+        ParserConfiguration config = new ParserConfiguration()
+                .setLanguageLevel(ParserConfiguration.LanguageLevel.JAVA_17);
+
+        // 2. Создаем парсер с этой конфигурацией
+        JavaParser parser = new JavaParser(config);
+
+        // 3. Парсим код
+        ParseResult<CompilationUnit> result = parser.parse(code);
+
+        // 4. Проверяем на ошибки и возвращаем результат
+        if (!result.isSuccessful()) {
+            throw new RuntimeException("Ошибка парсинга: " + result.getProblems());
+        }
+        return result.getResult().orElseThrow();
     }
 
     public static List<MethodDeclaration> getMethodsList(CompilationUnit cu) {
@@ -125,7 +181,7 @@ public class ParserService {
     public static TreeNode getTree(Statement st) {
         TreeNode cur;
         if (isSimple(st)) {
-            String label = st.toString().trim();
+            String label = removeComments(st.toString());
             if (label.endsWith(";")) {
                 label = label.substring(0, label.length() - 1);
             }
