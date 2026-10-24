@@ -30,8 +30,9 @@ public class HackrndApplication {
 
         String code = Files.readString(Path.of("D:\\Coding\\proj\\hackrnd\\src\\main\\java\\org\\example\\service\\example.java"));
         ParserService ps = new ParserService();
-        MethodDeclaration cu = ps.getMethodsList(ps.getCompilation(code)).get(1);
-        System.out.println(ps.methodToStatements(cu));
+        CompilationUnit cu = ps.getCompilation(code);
+        List<MethodDeclaration> methods = ps.getMethodsList(cu);
+        ps.printMethodTree(methods.get(0));
 
     }
 }

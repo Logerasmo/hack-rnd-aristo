@@ -1,39 +1,69 @@
 package org.example.service;
 public class example {
-    public int sumUpTo(int n) {
+
+    public int process(int[] data, String mode) {
         int sum = 0;
-        for (int i = 1; i <= n; i++) {
-            sum += i;
-        }
-        return sum;
-    }
+        int errors = 0;
 
-    // Метод 2: цикл while и условие if
-    public String classify(int value) {
-        int counter = 0;
-        while (counter < value) {
-            counter++;
-        }
-        if (counter > 10) {
-            return "big";
-        } else {
-            return "small";
-        }
-    }
-
-    // Метод 3: вложенные циклы
-    public void printTable(int rows, int cols) {
-        for (int r = 0; r < rows; r++) {
-            for (int c = 0; c < cols; c++) {
-                System.out.print(r * c + " ");
+        if (data == null || data.length == 0) {
+            return -1;
+        } else if (data.length == 1) {
+            sum = data[0];
+        } else if (data.length < 5) {
+            for (int i = 0; i < data.length; i++) {
+                if (data[i] < 0) {
+                    continue;
+                }
+                sum += data[i];
             }
-            System.out.println();
+        } else {
+            int i = 0;
+            while (i < data.length) {
+                sum += data[i];
+                i++;
+            }
         }
-    }
 
-    // Метод 4: без циклов, только переменные и вызов метода
-    public int doubleValue(int x) {
-        int result = x * 2;
-        return result;
+        for (String m : mode.split(",")) {
+            switch (m) {
+                case "double":
+                case "twice":
+                    sum *= 2;
+                    break;
+                case "reset":
+                    sum = 0;
+                    break;
+                case "log":
+                    System.out.println("sum=" + sum);
+                    break;
+                default:
+                    errors++;
+            }
+        }
+
+        do {
+            sum--;
+            if (sum < 0) {
+                break;
+            }
+        } while (sum > 100);
+
+        synchronized (this) {
+            try {
+                if (sum == 0) {
+                    throw new IllegalStateException("zero");
+                }
+                sum = sum / 2;
+            } catch (IllegalStateException e) {
+                errors++;
+                sum = -1;
+            } catch (ArithmeticException e) {
+                errors += 2;
+            } finally {
+                System.out.println("done, errors=" + errors);
+            }
+        }
+
+        return sum;
     }
 }
