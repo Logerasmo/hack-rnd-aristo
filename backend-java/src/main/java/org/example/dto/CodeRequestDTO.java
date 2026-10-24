@@ -1,4 +1,4 @@
-package org.example.controller;
+package org.example.dto;
 
 // DTO для приема кода
 public class CodeRequestDTO {

@@ -1,10 +1,5 @@
 package org.example.service;
 
-import org.example.controller.AnalyzeTest;
-
-import java.util.ArrayList;
-import java.util.List;
-
 public class AiService {
     public static String getTests(String code){
         // TODO: Здесь вызов OpenAI / Gemini / локальной модели

@@ -1,4 +1,4 @@
-package org.example.service;
+package org.example.service.tools;
 public class example {
 
     public int process(int[] data, String mode) {

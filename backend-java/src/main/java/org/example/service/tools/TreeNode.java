@@ -1,21 +1,18 @@
-package org.example.service;
-
+package org.example.service.tools;
+import com.github.javaparser.ast.Node;
 import com.github.javaparser.ast.stmt.Statement;
-import groovy.transform.ToString;
-
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class TreeNode {
     private final String label; // например, "for loop", "int x = 1"
-    private final Statement statement;  // cur_statement
+    private final Node statement;  // cur_statement
     private final List<TreeNode> children = new ArrayList<>(); // порядок гарантирован
     private final List<String> label2 = new ArrayList<>();
     private final List<List<TreeNode>> children2 = new ArrayList<>();
 
     // конструктор, геттеры, сеттеры
-    public TreeNode(Statement statement, String label) {
+    public TreeNode(Node statement, String label) {
         this.statement = statement;
         this.label = label;
     }
@@ -35,12 +32,6 @@ public class TreeNode {
         children2.get(num).add(child);
     }
 
-
-
-
-    public List<String> getLabel2() {
-        return label2;
-    }
 
     public void setLabel2(String label, Integer num) {
         while (label2.size() <= num) {
@@ -103,5 +94,20 @@ public class TreeNode {
             if (!b.isEmpty()) return true;
         }
         return false;
+    }
+
+    public String getLabel() {
+        return label;
+    }
+
+    public Node getStatement() {
+        return statement;
+    }
+
+    public List<List<TreeNode>> getChildren2() {
+        return children2;
+    }
+    public List<String> getLabel2() {
+        return label2;
     }
 }

@@ -1,9 +1,12 @@
 package org.example.service;
 
+import com.github.javaparser.ast.body.FieldDeclaration;
 import com.github.javaparser.StaticJavaParser;
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.stmt.*;
+import org.example.service.tools.TreeNode;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,7 +16,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class ParserService {
-    private boolean isSimple(Statement stmt) {
+    private static boolean isSimple(Statement stmt) {
         return stmt instanceof ExpressionStmt      // присваивание, вызов метода, counter++
                 || stmt instanceof ReturnStmt         // return ...
                 || stmt instanceof ThrowStmt          // throw ...
@@ -24,15 +27,82 @@ public class ParserService {
                 || stmt instanceof EmptyStmt;// this(...) / super(...)
     }
 
-    public CompilationUnit getCompilation(String code) {
+    public static TreeNode getClassTree(String code) {
+        // 1. Парсим весь код
+        CompilationUnit cu = StaticJavaParser.parse(code);
+
+        // 2. Берем первый попавшийся класс (обычно он один в файле)
+        Optional<ClassOrInterfaceDeclaration> classOpt = cu.findFirst(ClassOrInterfaceDeclaration.class);
+
+        if (classOpt.isEmpty()) {
+            return new TreeNode(null, "Класс не найден");
+        }
+
+        ClassOrInterfaceDeclaration clazz = classOpt.get();
+
+        // 3. Создаем корневой узел с названием класса
+        String classHeader = (clazz.isInterface() ? "interface " : "class ") + clazz.getNameAsString();
+        TreeNode root = new TreeNode(clazz, classHeader);
+
+        // 4. Проходим по всем членам класса (поля, методы, конструкторы)
+        clazz.getMembers().forEach(member -> {
+
+            // Если это метод
+            if (member instanceof MethodDeclaration method) {
+                // Формируем красивый заголовок для метода
+                String methodHeader = "method: " + method.getNameAsString() + "("
+                        + method.getParameters().stream()
+                        .map(p -> p.getTypeAsString() + " " + p.getNameAsString())
+                        .collect(Collectors.joining(", "))
+                        + ") : " + method.getTypeAsString();
+
+                TreeNode methodNode = new TreeNode(method, methodHeader);
+
+                // Добавляем инструкции тела метода внутрь узла метода
+                method.getBody().ifPresent(body -> {
+                    for (Statement s : body.getStatements()) {
+                        TreeNode child = getTree(s);
+                        if (child != null) methodNode.addChild(child);
+                    }
+                });
+
+                // Добавляем метод в класс
+                root.addChild(methodNode);
+            }
+
+            // Если это поле
+            else if (member instanceof FieldDeclaration field) {
+                // Формируем заголовок для поля
+                String fieldHeader = "field: " + field.getVariables().stream()
+                        .map(v -> v.getTypeAsString() + " " + v.getNameAsString())
+                        .collect(Collectors.joining(", "));
+
+                TreeNode fieldNode = new TreeNode(field, fieldHeader);
+                root.addChild(fieldNode);
+            }
+
+            // Если это конструктор (опционально)
+            else if (member instanceof com.github.javaparser.ast.body.ConstructorDeclaration constructor) {
+                String ctorHeader = "constructor: " + constructor.getNameAsString() + "(...)";
+                TreeNode ctorNode = new TreeNode(constructor, ctorHeader);
+                constructor.getBody().getStatements().forEach(s -> ctorNode.addChild(getTree(s)));
+                root.addChild(ctorNode);
+            }
+
+            // Другие члены (вложенные классы, enum'ы и т.д.) можно пока пропустить или обработать отдельно
+        });
+
+        return root;
+    }
+    public static CompilationUnit getCompilation(String code) {
         return StaticJavaParser.parse(code);
     }
 
-    public List<MethodDeclaration> getMethodsList(CompilationUnit cu) {
+    public static List<MethodDeclaration> getMethodsList(CompilationUnit cu) {
         return cu.findAll(MethodDeclaration.class);
     }
 
-    public List<Statement> methodToStatements(MethodDeclaration md) {
+    public static List<Statement> methodToStatements(MethodDeclaration md) {
         List<Statement> lst = new ArrayList<>();
         md.getBody().ifPresent(body -> {
             lst.addAll(body.getStatements());
@@ -40,7 +110,7 @@ public class ParserService {
         return lst;
     }
 
-    private void addToBranch(TreeNode parent, Statement body, int num) {
+    private static void addToBranch(TreeNode parent, Statement body, int num) {
         if (body instanceof BlockStmt block) {
             for (Statement s : block.getStatements()) {
                 if (num < 0) parent.addChild(getTree(s));
@@ -52,10 +122,14 @@ public class ParserService {
         }
     }
 
-    public TreeNode getTree(Statement st) {
+    public static TreeNode getTree(Statement st) {
         TreeNode cur;
         if (isSimple(st)) {
-            return new TreeNode(st, st.toString());
+            String label = st.toString().trim();
+            if (label.endsWith(";")) {
+                label = label.substring(0, label.length() - 1);
+            }
+            return new TreeNode(st, label);
         } else if (st instanceof BlockStmt blockStmt) {
             cur = new TreeNode(st, "");
             blockStmt.getStatements().forEach(x -> cur.addChild(getTree(x)));
