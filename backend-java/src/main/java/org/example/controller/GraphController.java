@@ -23,11 +23,13 @@ public class GraphController {
 
 // Находим нужный метод (например, по имени)
         List<TreeNode> methods = classRoot.getChildren().stream()
-                .filter(n -> n.getLabel().startsWith("method")).toList();
+                .filter(n -> n.getLabel().startsWith("method: ")).toList();
 
-        GraphConverter converter = new GraphConverter();
         List<GraphDTO> result = new ArrayList<>();
-        methods.forEach(x -> result.add(converter.convertMethod(x)));
+        methods.forEach(x -> {
+            GraphConverter converter = new GraphConverter();
+            result.add(converter.convertMethod(x));
+        });
         return result;
 
     }
