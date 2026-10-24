@@ -3,6 +3,7 @@ package org.example;
 import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import org.example.service.ParserService;
+import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import java.util.Collections;
 
