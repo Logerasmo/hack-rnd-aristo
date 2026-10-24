@@ -4,6 +4,7 @@ import com.github.javaparser.ast.CompilationUnit;
 import com.github.javaparser.ast.body.MethodDeclaration;
 import org.example.service.ParserService;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import java.util.Collections;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -24,5 +25,9 @@ public class HackrndApplication {
 //        List<MethodDeclaration> methods = ps.getMethodsList(cu);
 //        ps.printMethodTree(methods.get(0));
 
+        SpringApplication app = new SpringApplication(HackrndApplication.class);
+        // Жестко ставим порт 8081 в обход любых файлов настроек
+        app.setDefaultProperties(Collections.singletonMap("server.port", "8081"));
+        app.run(args);
     }
 }
