@@ -7,7 +7,7 @@ import {
   Folder, FolderOpen, FileCode, Play, Upload, FolderUp,
   Download, Terminal, ChevronRight, ChevronDown,
   Maximize2, Minimize2, Trash2, X, Settings, Moon, Sun,
-  ZoomIn, ZoomOut, CheckSquare, GitBranch, Code2, Send, Sparkles
+  CheckSquare, GitBranch, Code2, Send, Sparkles
 } from 'lucide-react';
 
 interface FileNode {
@@ -123,6 +123,12 @@ export default function App() {
   ]);
   const [activeFilePath, setActiveFilePath] = useState<string>('Main.java');
 
+  // Храним проверенный (успешно скомпилированный) код для блок-схемы,
+  // чтобы запрос на граф уходил ТОЛЬКО после успешного Launch и не клал бэкенд во время набора текста
+  const [compiledGraphCodes, setCompiledGraphCodes] = useState<Record<string, string>>({
+    'Main.java': DEFAULT_JAVA_CODE
+  });
+
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [stdinInput, setStdinInput] = useState<string>('');
   const sessionIdRef = useRef<string>('session-' + Math.random().toString(36).slice(2));
@@ -142,7 +148,7 @@ export default function App() {
 
   const [consoleHeight, setConsoleHeight] = useState<number>(260);
   const [isConsoleMaximized, setIsConsoleMaximized] = useState<boolean>(false);
-  const [analysisTab, setAnalysisTab] = useState<'problems' | 'recs' | 'metrics'>('problems');
+  const [analysisTab, setAnalysisTab] = useState<'problems' | 'metrics'>('problems');
   const [isRunning, setIsRunning] = useState<boolean>(false);
 
   const [generatedTests, setGeneratedTests] = useState<AnalyzeTest[]>([]);
@@ -152,11 +158,6 @@ export default function App() {
   const [analysisErrors, setAnalysisErrors] = useState<AnalyzeCode[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
   const [hasAnalyzed, setHasAnalyzed] = useState<boolean>(false);
-
-  const [graphZoom, setGraphZoom] = useState<number>(1);
-  const [graphPan, setGraphPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [isDraggingGraph, setIsDraggingGraph] = useState<boolean>(false);
-  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -353,40 +354,6 @@ export default function App() {
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleGraphMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.zoom-controls')) return;
-    setIsDraggingGraph(true);
-    dragStartRef.current = { x: e.clientX - graphPan.x, y: e.clientY - graphPan.y };
-  };
-
-  const handleGraphMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingGraph) return;
-    setGraphPan({
-      x: e.clientX - dragStartRef.current.x,
-      y: e.clientY - dragStartRef.current.y,
-    });
-  };
-
-  const handleGraphMouseUp = () => {
-    setIsDraggingGraph(false);
-  };
-
-  const handleGraphWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 0.1 : -0.1;
-    setGraphZoom((prev) => Math.min(Math.max(+(prev + delta).toFixed(2), 0.25), 3));
-  };
-
-  const handleZoomIn = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setGraphZoom((prev) => Math.min(+(prev + 0.15).toFixed(2), 3));
-  };
-
-  const handleZoomOut = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setGraphZoom((prev) => Math.max(+(prev - 0.15).toFixed(2), 0.25));
-  };
-
   const handleStartAnalysis = async () => {
     if (!activeFile) return;
 
@@ -398,19 +365,11 @@ export default function App() {
     appendConsole('Starting code analysis...', 'info');
 
     try {
-      let response = await fetch('/api/ai/analyze', {
+      const response = await fetch('http://localhost:8081/api/ai/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: javaCode }),
-      }).catch(() => null);
-
-      if (!response || response.status === 404) {
-        response = await fetch('http://localhost:8081/api/ai/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: javaCode }),
-        });
-      }
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error status ${response.status}`);
@@ -437,25 +396,19 @@ export default function App() {
 
     const javaCode = activeFile.content;
     setIsConsoleOpen(true);
+    setIsTestsOpen(true);
+    setFocusedDock('tests');
     setIsGeneratingTests(true);
 
     appendConsole(`Sending code "${activeFile.name}" to backend (/api/ai/tests)...`, 'info');
     appendConsole('Generating tests...', 'info');
 
     try {
-      let response = await fetch('/api/ai/tests', {
+      const response = await fetch('http://localhost:8081/api/ai/tests', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ code: javaCode }),
-      }).catch(() => null);
-
-      if (!response || response.status === 404) {
-        response = await fetch('http://localhost:8081/api/ai/tests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: javaCode }),
-        });
-      }
+      });
 
       if (!response.ok) {
         throw new Error(`HTTP error status ${response.status}`);
@@ -476,25 +429,27 @@ export default function App() {
     }
   };
 
-  // ПОТОКОВАЯ КОМПИЛЯЦИЯ НАПРЯМУЮ ЧЕРЕЗ ПОРТ 8081 (БЕЗ БУФЕРИЗАЦИИ VITE PROXY)
+  // ПОТОКОВАЯ КОМПИЛЯЦИЯ И ОБНОВЛЕНИЕ ГРАФА ТОЛЬКО ПРИ УСПЕШНОЙ КОМПИЛЯЦИИ
   const handleRun = async () => {
     if (!activeFile) return;
     setIsConsoleOpen(true);
     setFocusedDock('console');
     const now = () => new Date().toLocaleTimeString('ru-RU');
 
+    const currentFilePath = activeFile.path;
+    const currentFileContent = activeFile.content;
+
     setLogs([{ time: now(), text: `Compiling and running ${activeFile.name}...`, type: 'info' }]);
     setIsRunning(true);
 
     try {
-      const actualMainClass = extractJavaClassName(activeFile.content, activeFile.name);
-      const cleanedCode = stripPackageDeclaration(activeFile.content);
+      const actualMainClass = extractJavaClassName(currentFileContent, activeFile.name);
+      const cleanedCode = stripPackageDeclaration(currentFileContent);
 
       const compileFilesMap: Record<string, string> = {
         [`${actualMainClass}.java`]: cleanedCode,
       };
 
-      // Обращаемся напрямую к 8081 в обход Vite proxy, чтобы SSE-чанки (System.out.print) приходили мгновенно
       const streamResponse = await fetch('http://localhost:8081/api/compile/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -532,6 +487,11 @@ export default function App() {
                 appendConsole(payload.text, 'info');
               } else if (payload.type === 'success') {
                 appendConsole(payload.text, 'success');
+                // КАК ТОЛЬКО КОМПИЛЯЦИЯ ПРОШЛА УСПЕШНО — ОБНОВЛЯЕМ БЛОК-СХЕМУ!
+                setCompiledGraphCodes((prev) => ({
+                  ...prev,
+                  [currentFilePath]: currentFileContent,
+                }));
               } else if (payload.type === 'info') {
                 appendConsole(payload.text, 'info');
               } else if (payload.type === 'error') {
@@ -666,7 +626,10 @@ export default function App() {
     editorTheme: isDarkMode ? 'vs-dark' : 'vs',
   };
 
-  const scaledGridSize = Math.max(8, Math.round(24 * graphZoom));
+  // Код для графа берется только из успешно откомпилированного состояния (либо при первом открытии файла)
+  const codeForGraph = activeFile
+    ? (compiledGraphCodes[activeFile.path] ?? DEFAULT_JAVA_CODE)
+    : '';
 
   return (
     <div
@@ -717,19 +680,10 @@ export default function App() {
           opacity: 0.7;
           cursor: wait;
         }
-        .zoom-icon-btn {
-          display: inline-flex;
-          align-items: center;
-          justify-content: center;
-          padding: 3px;
-          border-radius: 4px;
-          cursor: pointer;
-          transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
-        }
-        .zoom-icon-btn:hover {
-          transform: scale(1.18);
-          color: #58a6ff;
-          background-color: rgba(88, 166, 255, 0.12);
+        /* Пункт 5: Скрываем квадрат мини-карты (MiniMap) и плашку React Flow в правом нижнем углу */
+        .react-flow__minimap,
+        .react-flow__attribution {
+          display: none !important;
         }
       `}</style>
 
@@ -845,127 +799,85 @@ export default function App() {
           
           <div style={{ flex: 1, display: 'flex', gap: '6px', minHeight: 0, overflow: 'hidden' }}>
 
-                        <div style={{ ...panelCardStyle(theme), flex: 1, minWidth: 0 }}>
-                          {/* Блок вкладок */}
-                          <div
-                            style={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              backgroundColor: theme.headerBg,
-                              borderBottom: `1px solid ${theme.border}`,
-                              padding: '0 6px',
-                              height: '35px',
-                              gap: '2px',
-                              overflowX: 'auto',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {openTabs.map((path) => {
-                              const isTabActive = path === activeFilePath;
-                              const fileNode = files.find((f) => f.path === path);
-                              if (!fileNode) return null;
+            <div style={{ ...panelCardStyle(theme), flex: 1, minWidth: 0 }}>
+              {/* Блок вкладок */}
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  backgroundColor: theme.headerBg,
+                  borderBottom: `1px solid ${theme.border}`,
+                  padding: '0 6px',
+                  height: '35px',
+                  gap: '2px',
+                  overflowX: 'auto',
+                  flexShrink: 0,
+                }}
+              >
+                {openTabs.map((path) => {
+                  const isTabActive = path === activeFilePath;
+                  const fileNode = files.find((f) => f.path === path);
+                  if (!fileNode) return null;
 
-                              return (
-                                <div
-                                  key={path}
-                                  draggable
-                                  onDragStart={(e) => handleTabDragStart(e, path)}
-                                  onDragOver={(e) => handleTabDragOver(e, path)}
-                                  onClick={() => {
-                                    setActiveFilePath(path);
-                                    setIsCodeOpen(true);
-                                    setFocusedDock('code');
-                                  }}
-                                  style={{
-                                    display: 'inline-flex',
-                                    alignItems: 'center',
-                                    gap: '7px',
-                                    padding: '0 12px',
-                                    height: '100%',
-                                    backgroundColor: isTabActive ? (isDarkMode ? '#162844' : '#ffffff') : 'transparent',
-                                    borderTop: isTabActive ? '2px solid #388bfd' : '2px solid transparent',
-                                    borderRight: `1px solid ${theme.border}`,
-                                    borderRadius: '6px 6px 0 0',
-                                    fontSize: '12px',
-                                    color: isTabActive ? (isDarkMode ? '#ffffff' : '#0969da') : theme.subText,
-                                    cursor: 'grab',
-                                    userSelect: 'none',
-                                  }}
-                                >
-                                  <FileCode size={13} color={isTabActive ? '#58a6ff' : '#e5c07b'} />
-                                  <span>{fileNode.name}</span>
-                                  <X
-                                    size={13}
-                                    style={{ marginLeft: '2px', opacity: 0.75, cursor: 'pointer' }}
-                                    onClick={(e) => handleCloseTab(e, path)}
-                                  />
-                                </div>
-                              );
-                            })}
-                          </div>
+                  return (
+                    <div
+                      key={path}
+                      draggable
+                      onDragStart={(e) => handleTabDragStart(e, path)}
+                      onDragOver={(e) => handleTabDragOver(e, path)}
+                      onClick={() => {
+                        setActiveFilePath(path);
+                        setIsCodeOpen(true);
+                        setFocusedDock('code');
+                      }}
+                      style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '7px',
+                        padding: '0 12px',
+                        height: '100%',
+                        backgroundColor: isTabActive ? (isDarkMode ? '#162844' : '#ffffff') : 'transparent',
+                        borderTop: isTabActive ? '2px solid #388bfd' : '2px solid transparent',
+                        borderRight: `1px solid ${theme.border}`,
+                        borderRadius: '6px 6px 0 0',
+                        fontSize: '12px',
+                        color: isTabActive ? (isDarkMode ? '#ffffff' : '#0969da') : theme.subText,
+                        cursor: 'grab',
+                        userSelect: 'none',
+                      }}
+                    >
+                      <FileCode size={13} color={isTabActive ? '#58a6ff' : '#e5c07b'} />
+                      <span>{fileNode.name}</span>
+                      <X
+                        size={13}
+                        style={{ marginLeft: '2px', opacity: 0.75, cursor: 'pointer' }}
+                        onClick={(e) => handleCloseTab(e, path)}
+                      />
+                    </div>
+                  );
+                })}
+              </div>
 
-                          {/* Контейнер сетки и графа (ЗАКРЫТИЕ ТЕГА ВКЛАДОК БЫЛО ЗДЕСЬ) */}
-                          <div
-                            style={{
-                              flex: 1,
-                              position: 'relative',
-                              overflow: 'hidden',
-                              backgroundColor: isDarkMode ? '#0c1017' : '#ffffff',
-                              backgroundImage: `
-                                linear-gradient(to right, rgba(56, 139, 253, 0.07) 1px, transparent 1px),
-                                linear-gradient(to bottom, rgba(56, 139, 253, 0.07) 1px, transparent 1px)
-                              `,
-                              backgroundSize: `${scaledGridSize}px ${scaledGridSize}px`,
-                              backgroundPosition: `${graphPan.x}px ${graphPan.y}px`,
-                            }}
-                          >
-                            {/* Кастомные кнопки зума */}
-                            <div
-                              className="zoom-controls"
-                              style={{
-                                position: 'absolute',
-                                top: '10px',
-                                right: '10px',
-                                zIndex: 20,
-                                display: 'flex',
-                                alignItems: 'center',
-                                gap: '8px',
-                                padding: '4px 10px',
-                                backgroundColor: theme.panelBg,
-                                border: `1px solid ${theme.border}`,
-                                borderRadius: '6px',
-                                fontSize: '12px',
-                                color: theme.subText,
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-                              }}
-                            >
-                              <div className="zoom-icon-btn" onClick={handleZoomOut} title="Zoom Out">
-                                <ZoomOut size={13} />
-                              </div>
-                              <div className="zoom-icon-btn" onClick={handleZoomIn} title="Zoom In">
-                                <ZoomIn size={13} />
-                              </div>
-                              <span
-                                onClick={() => { setGraphZoom(1); setGraphPan({ x: 0, y: 0 }); }}
-                                style={{ cursor: 'pointer', minWidth: '34px', textAlign: 'right' }}
-                                title="Click to reset view (100%)"
-                              >
-                                {Math.round(graphZoom * 100)}%
-                              </span>
-                            </div>
-
-                            {/* Сам граф */}
-                            <div style={{ position: 'absolute', inset: 0, zIndex: 1, width: '100%', height: '100%' }}>
-                              {activeFile && (
-                                <CodeGraph
-                                  code={activeFile.content}
-                                  fileName={activeFile.name}
-                                  isDarkMode={isDarkMode}
-                                />
-                              )}
-                            </div>
-                          </div>
-                        </div>
+              {/* Контейнер графа (Пункт 4: оставлен только один рабочий контроллер управления пространством внутри CodeGraph) */}
+              <div
+                style={{
+                  flex: 1,
+                  position: 'relative',
+                  overflow: 'hidden',
+                  backgroundColor: isDarkMode ? '#0c1017' : '#ffffff',
+                }}
+              >
+                <div style={{ position: 'absolute', inset: 0, zIndex: 1, width: '100%', height: '100%' }}>
+                  {activeFile && (
+                    <CodeGraph
+                      code={codeForGraph}
+                      fileName={activeFile.name}
+                      isDarkMode={isDarkMode}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
 
             <div style={{ ...panelCardStyle(theme), width: '310px', flexShrink: 0 }}>
               <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border}`, backgroundColor: theme.headerBg }}>
@@ -991,17 +903,17 @@ export default function App() {
                   )}
                 </div>
 
+                {/* Пункт 3: Убран раздел Recommendations, оставлены только Problem и Metrics */}
                 {hasAnalyzed && (
                   <div style={{ display: 'flex', gap: '4px', backgroundColor: isDarkMode ? '#0b0e14' : '#eaeef2', padding: '3px', borderRadius: '6px' }}>
                     {[
                       { id: 'problems', label: 'Problem' },
-                      { id: 'recs', label: 'Recommendations' },
                       { id: 'metrics', label: 'Metrics' },
                     ].map((t) => (
                       <div
                         key={t.id}
                         className="hover-scale-btn"
-                        onClick={() => setAnalysisTab(t.id as any)}
+                        onClick={() => setAnalysisTab(t.id as 'problems' | 'metrics')}
                         style={{
                           flex: 1,
                           textAlign: 'center',
@@ -1120,50 +1032,6 @@ export default function App() {
                           })
                         )}
                       </>
-                    )}
-
-                    {analysisTab === 'recs' && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        {analysisErrors.filter((e) => e.codeToFix).length === 0 ? (
-                          <div style={{ textAlign: 'center', color: theme.subText, fontSize: '12px', marginTop: '24px' }}>
-                            No additional recommendations.
-                          </div>
-                        ) : (
-                          analysisErrors
-                            .filter((e) => e.codeToFix)
-                            .map((err, idx) => (
-                              <div
-                                key={idx}
-                                style={{
-                                  padding: '10px',
-                                  borderRadius: '6px',
-                                  backgroundColor: theme.headerBg,
-                                  border: `1px solid ${theme.border}`,
-                                  fontSize: '12px',
-                                }}
-                              >
-                                <div style={{ fontWeight: 600, marginBottom: '4px' }}>{err.name}</div>
-                                <div style={{ fontSize: '11px', color: theme.subText, marginBottom: '6px' }}>
-                                  Suggested fix at <span style={{ color: '#58a6ff', fontFamily: 'monospace' }}>{err.place}</span>:
-                                </div>
-                                <pre
-                                  style={{
-                                    margin: 0,
-                                    padding: '6px 8px',
-                                    borderRadius: '4px',
-                                    backgroundColor: isDarkMode ? '#0b0e14' : '#eaeef2',
-                                    color: '#ffffff',
-                                    fontSize: '11px',
-                                    fontFamily: 'Consolas, monospace',
-                                    overflowX: 'auto',
-                                  }}
-                                >
-                                  {err.codeToFix}
-                                </pre>
-                              </div>
-                            ))
-                        )}
-                      </div>
                     )}
 
                     {analysisTab === 'metrics' && (
@@ -1384,6 +1252,7 @@ export default function App() {
                   </div>
                 )}
 
+                {/* Пункт 1: Полностью восстановлено окно отображения сгенерированных тестов */}
                 {isTestsOpen && (
                   <div
                     onMouseDown={() => setFocusedDock('tests')}
@@ -1429,6 +1298,7 @@ export default function App() {
                         <button
                           className="hover-scale-btn"
                           disabled={!hasGeneratedTests}
+                          onClick={handleRun}
                           style={{
                             ...btnStyle(isDarkMode),
                             flex: 1,
@@ -1445,10 +1315,34 @@ export default function App() {
                           <span>Run tests</span>
                         </button>
                       </div>
-                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => setIsTestsOpen(false)} />
-                    </div>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.subText, fontSize: '12px' }}>
-                      Test results window
+
+                      {generatedTests.length === 0 ? (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.subText, fontSize: '12px', textAlign: 'center' }}>
+                          Click 'Generate tests' to send code from the Code Java window to the backend
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {generatedTests.map((test, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                padding: '8px 10px',
+                                borderRadius: '6px',
+                                backgroundColor: theme.headerBg,
+                                border: `1px solid ${theme.border}`,
+                                fontSize: '12px',
+                              }}
+                            >
+                              <div style={{ fontWeight: 600, color: theme.text, marginBottom: '4px' }}>
+                                {idx + 1}. {test.name}
+                              </div>
+                              <pre style={{ margin: 0, fontSize: '11px', color: theme.subText, overflowX: 'auto', fontFamily: 'Consolas, monospace' }}>
+                                {test.code}
+                              </pre>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}

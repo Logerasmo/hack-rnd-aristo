@@ -8,9 +8,13 @@ c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\dto\ExecutionD
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\HackrndApplication.java
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\AiService.java
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\ExecutionService.java
+c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\GraphConverter.java
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\ParserService.java
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\tools\AnalyzeCodeParser.java
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\tools\AnalyzeTestParser.java
+c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\tools\EdgeDTO.java
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\tools\example.java
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\tools\FeaturesDemo.java
+c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\tools\GraphDTO.java
+c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\tools\NodeDTO.java
 c:\project\hack-rnd-aristo\backend-java\src\main\java\org\example\service\tools\TreeNode.java

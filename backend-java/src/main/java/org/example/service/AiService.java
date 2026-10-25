@@ -13,6 +13,7 @@ public class AiService {
     public String getTests(String code) {
         String prompt = """
                 Ты — senior Java-разработчик. Сгенерируй JUnit тесты для следующего кода.
+                Не должно быть ```java ```. Только чистый код по формату 
                 Верни ответ строго в формате:
                 @@@@
                 Название теста
@@ -36,6 +37,7 @@ public class AiService {
     public String analyzeCode(String code) {
         String prompt = """
                 Проанализируй код и найди ошибки.
+                Не должно быть ```java ```. Только чистый код по формату без комментариев, только одно решение для исправления в поле для коде
                 Формат ответа:
                 @@@@
                 Название ошибки
