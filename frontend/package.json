@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
-    "@xyflow/react": "^12.12.0",
+    "@xyflow/react": "^12.9.0",
     "dagre": "^0.8.5",
     "file-saver": "^2.0.5",
     "jszip": "^3.10.2",
