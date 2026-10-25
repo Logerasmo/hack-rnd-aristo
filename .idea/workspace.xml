@@ -4,11 +4,12 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="&#9;graph 3.0">
+    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="tests0.4">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/controller/GraphController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/controller/GraphController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/src/components/graph/CodeGraph.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/graph/CodeGraph.css" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/controller/ExecutionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/controller/ExecutionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/App.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/graph/CodeGraph.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/graph/CodeGraph.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/frontend/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/vite.config.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -46,7 +47,7 @@
   &quot;associatedIndex&quot;: 8
 }</component>
   <component name="ProjectId" id="3L9ZNspPRxuYnri2DpyC4cwb8IW" />
-  <component name="ProjectLevelVcsManager">
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true">
     <ConfirmationsSetting value="2" id="Add" />
   </component>
   <component name="ProjectViewState">
@@ -57,21 +58,11 @@
   "keyToString": {
     "Application.HackrndApplication.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "Spring Boot.HackrndApplication.executor": "Run",
-    "git-widget-placeholder": "graph",
+    "git-widget-placeholder": "merge",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "C:/Users/rodio/papapa/hack-rnd-aristo",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "python.packages.toolwindow.project.migrated.to.right.top.v2": "true",
-    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings",
-    "ts.external.directory.path": "C:\\Users\\rodio\\papapa\\hack-rnd-aristo\\frontend\\node_modules\\typescript\\lib"
+    "last_opened_file_path": "D:/Coding/proj",
+    "run.code.analysis.last.selected.profile": "pProject Default",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
   }
 }]]></component>
   <component name="SharedIndexes">

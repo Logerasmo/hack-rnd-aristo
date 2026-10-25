@@ -450,18 +450,24 @@ export default function CodeGraph({ code, fileName, isDarkMode }: Props) {
 
   return (
     <div className={`cg-root ${isDarkMode ? 'cg-dark' : 'cg-light'}`}>
-      <ReactFlow
-        nodes={nodes} edges={edges}
-        onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
-        nodeTypes={nodeTypes}
-        colorMode={isDarkMode ? 'dark' : 'light'}
-        fitView fitViewOptions={{ padding: 0.12 }}
-        nodesConnectable={false} minZoom={0.1} maxZoom={2}
-      >
-        <Background variant={BackgroundVariant.Lines} gap={20} size={1} color={isDarkMode ? '#223148' : '#dfe6f0'} />
-        <Controls position="top-right" showInteractive={false} />
-        <MiniMap position="bottom-right" pannable zoomable />
-      </ReactFlow>
+                  <ReactFlow
+                    nodes={nodes} edges={edges}
+                    onNodesChange={onNodesChange} onEdgesChange={onEdgesChange}
+                    nodeTypes={nodeTypes}
+                    colorMode={isDarkMode ? 'dark' : 'light'}
+                    fitView fitViewOptions={{ padding: 0.12 }}
+                    nodesConnectable={false} minZoom={0.1} maxZoom={2}
+                    style={{ background: 'transparent' }} // ДЕЛАЕМ ФОН ПРОЗРАЧНЫМ
+                    panOnDrag={true} // ВКЛЮЧАЕМ ПЕРЕТАСКИВАНИЕ ФОНА МЫШЬЮ
+                    zoomOnScroll={true} // ВКЛЮЧАЕМ ЗУМ КОЛЕСИКОМ
+                  >
+                    {/* УДАЛЯЕМ ИЛИ КОММЕНТИРУЕМ <Background>, ЧТОБЫ НЕ БЫЛО ДВОЙНОЙ СЕТКИ */}
+                    {/* <Background variant={BackgroundVariant.Lines} gap={20} size={1} color={isDarkMode ? '#223148' : '#dfe6f0'} /> */}
+
+                    {/* Если встроенные кнопки зума ReactFlow вам не нужны, удалите <Controls> */}
+                    <Controls position="top-right" showInteractive={false} />
+                    <MiniMap position="bottom-right" pannable zoomable />
+                  </ReactFlow>
       <div className="cg-overlay">{fileName} · блок-схема {busy ? '· обновление…' : ''}</div>
       {error && <div className="cg-overlay cg-error">{error}</div>}
       {!busy && !error && graphs.length === 0 && <div className="cg-empty">Нет методов для отображения</div>}

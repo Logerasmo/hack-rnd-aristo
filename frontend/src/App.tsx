@@ -900,138 +900,127 @@ export default function App() {
           
           <div style={{ flex: 1, display: 'flex', gap: '6px', minHeight: 0, overflow: 'hidden' }}>
 
-            <div style={{ ...panelCardStyle(theme), flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  backgroundColor: theme.headerBg,
-                  borderBottom: `1px solid ${theme.border}`,
-                  padding: '0 6px',
-                  height: '35px',
-                  gap: '2px',
-                  overflowX: 'auto',
-                  flexShrink: 0,
-                }}
-              >
-                {openTabs.map((path) => {
-                  const isTabActive = path === activeFilePath;
-                  const fileNode = files.find((f) => f.path === path);
-                  if (!fileNode) return null;
+                        <div style={{ ...panelCardStyle(theme), flex: 1, minWidth: 0 }}>
+                          {/* Блок вкладок */}
+                          <div
+                            style={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              backgroundColor: theme.headerBg,
+                              borderBottom: `1px solid ${theme.border}`,
+                              padding: '0 6px',
+                              height: '35px',
+                              gap: '2px',
+                              overflowX: 'auto',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {openTabs.map((path) => {
+                              const isTabActive = path === activeFilePath;
+                              const fileNode = files.find((f) => f.path === path);
+                              if (!fileNode) return null;
 
-                  return (
-                    <div
-                      key={path}
-                      draggable
-                      onDragStart={(e) => handleTabDragStart(e, path)}
-                      onDragOver={(e) => handleTabDragOver(e, path)}
-                      onClick={() => {
-                        setActiveFilePath(path);
-                        setIsCodeOpen(true);
-                        setFocusedDock('code');
-                      }}
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: '7px',
-                        padding: '0 12px',
-                        height: '100%',
-                        backgroundColor: isTabActive ? (isDarkMode ? '#162844' : '#ffffff') : 'transparent',
-                        borderTop: isTabActive ? '2px solid #388bfd' : '2px solid transparent',
-                        borderRight: `1px solid ${theme.border}`,
-                        borderRadius: '6px 6px 0 0',
-                        fontSize: '12px',
-                        color: isTabActive ? (isDarkMode ? '#ffffff' : '#0969da') : theme.subText,
-                        cursor: 'grab',
-                        userSelect: 'none',
-                      }}
-                    >
-                      <FileCode size={13} color={isTabActive ? '#58a6ff' : '#e5c07b'} />
-                      <span>{fileNode.name}</span>
-                      <X
-                        size={13}
-                        style={{ marginLeft: '2px', opacity: 0.75, cursor: 'pointer' }}
-                        onClick={(e) => handleCloseTab(e, path)}
-                      />
-                    </div>
-                  );
-                })}
-              </div>
+                              return (
+                                <div
+                                  key={path}
+                                  draggable
+                                  onDragStart={(e) => handleTabDragStart(e, path)}
+                                  onDragOver={(e) => handleTabDragOver(e, path)}
+                                  onClick={() => {
+                                    setActiveFilePath(path);
+                                    setIsCodeOpen(true);
+                                    setFocusedDock('code');
+                                  }}
+                                  style={{
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '7px',
+                                    padding: '0 12px',
+                                    height: '100%',
+                                    backgroundColor: isTabActive ? (isDarkMode ? '#162844' : '#ffffff') : 'transparent',
+                                    borderTop: isTabActive ? '2px solid #388bfd' : '2px solid transparent',
+                                    borderRight: `1px solid ${theme.border}`,
+                                    borderRadius: '6px 6px 0 0',
+                                    fontSize: '12px',
+                                    color: isTabActive ? (isDarkMode ? '#ffffff' : '#0969da') : theme.subText,
+                                    cursor: 'grab',
+                                    userSelect: 'none',
+                                  }}
+                                >
+                                  <FileCode size={13} color={isTabActive ? '#58a6ff' : '#e5c07b'} />
+                                  <span>{fileNode.name}</span>
+                                  <X
+                                    size={13}
+                                    style={{ marginLeft: '2px', opacity: 0.75, cursor: 'pointer' }}
+                                    onClick={(e) => handleCloseTab(e, path)}
+                                  />
+                                </div>
+                              );
+                            })}
+                          </div>
 
-              <div
-                onMouseDown={handleGraphMouseDown}
-                onMouseMove={handleGraphMouseMove}
-                onMouseUp={handleGraphMouseUp}
-                onMouseLeave={handleGraphMouseUp}
-                onWheel={handleGraphWheel}
-                onContextMenu={(e) => e.preventDefault()}
-                style={{
-                  flex: 1,
-                  position: 'relative',
-                  overflow: 'hidden',
-                  backgroundColor: isDarkMode ? '#0c1017' : '#ffffff',
-                  backgroundImage: `
-                    linear-gradient(to right, rgba(56, 139, 253, 0.07) 1px, transparent 1px),
-                    linear-gradient(to bottom, rgba(56, 139, 253, 0.07) 1px, transparent 1px)
-                  `,
-                  backgroundSize: `${scaledGridSize}px ${scaledGridSize}px`,
-                  backgroundPosition: `${graphPan.x}px ${graphPan.y}px`,
-                  cursor: isDraggingGraph ? 'grabbing' : 'grab',
-                  userSelect: 'none',
-                }}
-              >
-                <div
-                  className="zoom-controls"
-                  style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '10px',
-                    zIndex: 20,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    padding: '4px 10px',
-                    backgroundColor: theme.panelBg,
-                    border: `1px solid ${theme.border}`,
-                    borderRadius: '6px',
-                    fontSize: '12px',
-                    color: theme.subText,
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
-                  }}
-                >
-                  <div className="zoom-icon-btn" onClick={handleZoomOut} title="Zoom Out">
-                    <ZoomOut size={13} />
-                  </div>
-                  <div className="zoom-icon-btn" onClick={handleZoomIn} title="Zoom In">
-                    <ZoomIn size={13} />
-                  </div>
-                  <span
-                    onClick={() => { setGraphZoom(1); setGraphPan({ x: 0, y: 0 }); }}
-                    style={{ cursor: 'pointer', minWidth: '34px', textAlign: 'right' }}
-                    title="Click to reset view (100%)"
-                  >
-                    {Math.round(graphZoom * 100)}%
-                  </span>
-                </div>
+                          {/* Контейнер сетки и графа (ЗАКРЫТИЕ ТЕГА ВКЛАДОК БЫЛО ЗДЕСЬ) */}
+                          <div
+                            style={{
+                              flex: 1,
+                              position: 'relative',
+                              overflow: 'hidden',
+                              backgroundColor: isDarkMode ? '#0c1017' : '#ffffff',
+                              backgroundImage: `
+                                linear-gradient(to right, rgba(56, 139, 253, 0.07) 1px, transparent 1px),
+                                linear-gradient(to bottom, rgba(56, 139, 253, 0.07) 1px, transparent 1px)
+                              `,
+                              backgroundSize: `${scaledGridSize}px ${scaledGridSize}px`,
+                              backgroundPosition: `${graphPan.x}px ${graphPan.y}px`,
+                            }}
+                          >
+                            {/* Кастомные кнопки зума */}
+                            <div
+                              className="zoom-controls"
+                              style={{
+                                position: 'absolute',
+                                top: '10px',
+                                right: '10px',
+                                zIndex: 20,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                padding: '4px 10px',
+                                backgroundColor: theme.panelBg,
+                                border: `1px solid ${theme.border}`,
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                color: theme.subText,
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                              }}
+                            >
+                              <div className="zoom-icon-btn" onClick={handleZoomOut} title="Zoom Out">
+                                <ZoomOut size={13} />
+                              </div>
+                              <div className="zoom-icon-btn" onClick={handleZoomIn} title="Zoom In">
+                                <ZoomIn size={13} />
+                              </div>
+                              <span
+                                onClick={() => { setGraphZoom(1); setGraphPan({ x: 0, y: 0 }); }}
+                                style={{ cursor: 'pointer', minWidth: '34px', textAlign: 'right' }}
+                                title="Click to reset view (100%)"
+                              >
+                                {Math.round(graphZoom * 100)}%
+                              </span>
+                            </div>
 
-                <div
-                  style={{
-                    position: 'absolute',
-                    inset: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transform: `translate(${graphPan.x}px, ${graphPan.y}px) scale(${graphZoom})`,
-                    transformOrigin: 'center center',
-                    pointerEvents: 'none',
-                  }}
-                >
-                  <span style={{ color: isDarkMode ? '#30363d' : '#8c959f', fontSize: '13px', userSelect: 'none' }}>
-                    Flowchart area ({activeFile?.name})
-                  </span>
-                </div>
-              </div>
-            </div>
+                            {/* Сам граф */}
+                            <div style={{ position: 'absolute', inset: 0, zIndex: 1, width: '100%', height: '100%' }}>
+                              {activeFile && (
+                                <CodeGraph
+                                  code={activeFile.content}
+                                  fileName={activeFile.name}
+                                  isDarkMode={isDarkMode}
+                                />
+                              )}
+                            </div>
+                          </div>
+                        </div>
 
             <div style={{ ...panelCardStyle(theme), width: '310px', flexShrink: 0 }}>
               <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border}`, backgroundColor: theme.headerBg }}>
@@ -1511,34 +1500,10 @@ export default function App() {
                           <span>Run tests</span>
                         </button>
                       </div>
-
-                      {generatedTests.length === 0 ? (
-                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.subText, fontSize: '12px', textAlign: 'center' }}>
-                          Click 'Generate tests' to send code from the Code Java window to the backend
-                        </div>
-                      ) : (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {generatedTests.map((test, idx) => (
-                            <div
-                              key={idx}
-                              style={{
-                                padding: '8px 10px',
-                                borderRadius: '6px',
-                                backgroundColor: theme.headerBg,
-                                border: `1px solid ${theme.border}`,
-                                fontSize: '12px',
-                              }}
-                            >
-                              <div style={{ fontWeight: 600, color: theme.text, marginBottom: '4px' }}>
-                                {idx + 1}. {test.name}
-                              </div>
-                              <pre style={{ margin: 0, fontSize: '11px', color: theme.subText, overflowX: 'auto', fontFamily: 'Consolas, monospace' }}>
-                                {test.code}
-                              </pre>
-                            </div>
-                          ))}
-                        </div>
-                      )}
+                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => setIsTestsOpen(false)} />
+                    </div>
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.subText, fontSize: '12px' }}>
+                      Test results window
                     </div>
                   </div>
                 )}

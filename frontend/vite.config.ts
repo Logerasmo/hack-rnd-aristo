@@ -8,10 +8,12 @@ export default defineConfig({
     proxy: {
       '/graph': {
         target: 'http://localhost:8081',
+        changeOrigin: true, // Рекомендуется добавить и сюда
+      }, // <--- ЗДЕСЬ НЕ ХВАТАЛО ЗАКРЫВАЮЩЕЙ СКОБКИ И ЗАПЯТОЙ
       '/api': {
         target: 'http://localhost:8081',
         changeOrigin: true,
       }
     }
   }
-}})
+})
