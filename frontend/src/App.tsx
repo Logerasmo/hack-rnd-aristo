@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import Editor from '@monaco-editor/react';
+import CodeGraph from './components/graph/CodeGraph';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import {
@@ -79,36 +80,23 @@ function buildFileTree(files: FileNode[]): TreeNode[] {
   return root;
 }
 
-// Автоматическое определение имени главного класса из исходного кода Java
-function extractJavaClassName(code: string, fallbackFileName: string): string {
-  // 1. Ищем public class Name
-  const publicClassMatch = code.match(/public\s+class\s+([A-Za-z_$][A-Za-z0-9_$]*)/);
-  if (publicClassMatch && publicClassMatch[1]) {
-    return publicClassMatch[1];
-  }
+const DEFAULT_JAVA_CODE = `import java.util.Scanner;
 
-  // 2. Ищем любой class Name, если public нет
-  const anyClassMatch = code.match(/class\s+([A-Za-z_$][A-Za-z0-9_$]*)/);
-  if (anyClassMatch && anyClassMatch[1]) {
-    return anyClassMatch[1];
-  }
-
-  // 3. Фоллбэк на имя файла без .java
-  return fallbackFileName.replace(/\.java$/i, '');
-}
-
-// Удаляем объявление package из кода при одиночной компиляции в корень tempDir, чтобы не было NoClassDefFoundError
-function stripPackageDeclaration(code: string): string {
-  return code.replace(/^\s*package\s+[a-zA-Z0-9_.]+\s*;/m, '// package removed for flat compilation');
-}
-
-const DEFAULT_JAVA_CODE = `public class Main {
+public class Main {
     public static void main(String[] args) {
-        int a = 15;
-        int b = 27;
-        System.out.println("Первое число: " + a);
-        System.out.println("Второе число: " + b);
-        System.out.println("Сумма: " + (a + b));
+        int sum = 0;
+
+        for (int i = 0; i < 10; i++) {
+            if (i % 2 == 0) {
+                sum += i;
+                System.out.println("Четное: " + i);
+            } else {
+                sum -= i;
+                System.out.println("Нечетное: " + i);
+            }
+        }
+
+        System.out.println("Результат: " + sum);
     }
 }`;
 
@@ -119,10 +107,14 @@ export default function App() {
   ]);
   const [activeFilePath, setActiveFilePath] = useState<string>('Main.java');
 
+  // переключение темы
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+
+  // строка живого ввода в консоль во время работы кода
   const [stdinInput, setStdinInput] = useState<string>('');
   const sessionIdRef = useRef<string>('session-' + Math.random().toString(36).slice(2));
 
+  // вкладки файлов сверху над блок-схемами
   const [openTabs, setOpenTabs] = useState<string[]>(() => [files[0]?.path || 'Main.java']);
   const [draggedTabPath, setDraggedTabPath] = useState<string | null>(null);
 
@@ -190,6 +182,7 @@ export default function App() {
     );
   };
 
+  // клик по файлу в дереве открывает вкладку сверху и код снизу
   const handleOpenFile = (path: string) => {
     setActiveFilePath(path);
     setIsCodeOpen(true);
@@ -199,6 +192,7 @@ export default function App() {
     }
   };
 
+  // закрытие вкладки сверху крестиком
   const handleCloseTab = (e: React.MouseEvent, path: string) => {
     e.stopPropagation();
     const newTabs = openTabs.filter((t) => t !== path);
@@ -211,6 +205,7 @@ export default function App() {
     }
   };
 
+  // перетаскивание верхних вкладок мышкой
   const handleTabDragStart = (e: React.DragEvent, path: string) => {
     setDraggedTabPath(path);
   };
@@ -349,130 +344,7 @@ export default function App() {
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  const handleGraphMouseDown = (e: React.MouseEvent) => {
-    if ((e.target as HTMLElement).closest('.zoom-controls')) return;
-    setIsDraggingGraph(true);
-    dragStartRef.current = { x: e.clientX - graphPan.x, y: e.clientY - graphPan.y };
-  };
-
-  const handleGraphMouseMove = (e: React.MouseEvent) => {
-    if (!isDraggingGraph) return;
-    setGraphPan({
-      x: e.clientX - dragStartRef.current.x,
-      y: e.clientY - dragStartRef.current.y,
-    });
-  };
-
-  const handleGraphMouseUp = () => {
-    setIsDraggingGraph(false);
-  };
-
-  const handleGraphWheel = (e: React.WheelEvent) => {
-    e.preventDefault();
-    const delta = e.deltaY < 0 ? 0.1 : -0.1;
-    setGraphZoom((prev) => Math.min(Math.max(+(prev + delta).toFixed(2), 0.25), 3));
-  };
-
-  const handleZoomIn = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setGraphZoom((prev) => Math.min(+(prev + 0.15).toFixed(2), 3));
-  };
-
-  const handleZoomOut = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setGraphZoom((prev) => Math.max(+(prev - 0.15).toFixed(2), 0.25));
-  };
-
-  const handleStartAnalysis = async () => {
-    if (!activeFile) return;
-
-    const javaCode = activeFile.content;
-    setIsConsoleOpen(true);
-    setIsAnalyzing(true);
-
-    appendConsole(`Sending code "${activeFile.name}" to backend (/api/ai/analyze)...`, 'info');
-    appendConsole('Starting code analysis...', 'info');
-
-    try {
-      let response = await fetch('/api/ai/analyze', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: javaCode }),
-      }).catch(() => null);
-
-      if (!response || response.status === 404) {
-        response = await fetch('http://localhost:8081/api/ai/analyze', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: javaCode }),
-        });
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error status ${response.status}`);
-      }
-
-      const errors: AnalyzeCode[] = await response.json();
-      setAnalysisErrors(Array.isArray(errors) ? errors : []);
-      setHasAnalyzed(true);
-      setAnalysisTab('problems');
-
-      appendConsole(
-        `Analysis completed successfully. Issues found: ${Array.isArray(errors) ? errors.length : 0}`,
-        'success'
-      );
-    } catch (err: any) {
-      appendConsole(`Error during analysis: ${err.message}`, 'error');
-    } finally {
-      setIsAnalyzing(false);
-    }
-  };
-
-  const handleGenerateTests = async () => {
-    if (!activeFile) return;
-
-    const javaCode = activeFile.content;
-    setIsConsoleOpen(true);
-    setIsGeneratingTests(true);
-
-    appendConsole(`Sending code "${activeFile.name}" to backend (/api/ai/tests)...`, 'info');
-    appendConsole('Generating tests...', 'info');
-
-    try {
-      let response = await fetch('/api/ai/tests', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code: javaCode }),
-      }).catch(() => null);
-
-      if (!response || response.status === 404) {
-        response = await fetch('http://localhost:8081/api/ai/tests', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: javaCode }),
-        });
-      }
-
-      if (!response.ok) {
-        throw new Error(`HTTP error status ${response.status}`);
-      }
-
-      const tests: AnalyzeTest[] = await response.json();
-      setGeneratedTests(Array.isArray(tests) ? tests : []);
-      setHasGeneratedTests(true);
-
-      appendConsole(
-        `Code successfully accepted by backend. Tests generated: ${Array.isArray(tests) ? tests.length : 0}`,
-        'success'
-      );
-    } catch (err: any) {
-      appendConsole(`Error generating tests: ${err.message}`, 'error');
-    } finally {
-      setIsGeneratingTests(false);
-    }
-  };
-
-  // ИСПРАВЛЕННАЯ КОМПИЛЯЦИЯ: работает с любым именем файла (pervay.java, vtoray.java) и любой папкой
+  // потоковый запуск программы с ожиданием ввода пользователя во время работы
   const handleRun = async () => {
     if (!activeFile) return;
     setIsConsoleOpen(true);
@@ -495,42 +367,7 @@ export default function App() {
         [`${actualMainClass}.java`]: cleanedCode,
       };
 
-      // 1. Запрос к Java-бэкенду (/api/compile/run)
-      let runResponse = await fetch('/api/compile/run', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          files: compileFilesMap,
-          mainClass: actualMainClass,
-        }),
-      }).catch(() => null);
-
-      if (!runResponse || runResponse.status === 404) {
-        runResponse = await fetch('http://localhost:8081/api/compile/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            files: compileFilesMap,
-            mainClass: actualMainClass,
-          }),
-        }).catch(() => null);
-      }
-
-      if (runResponse && runResponse.ok) {
-        const result: { output?: string; error?: string } = await runResponse.json();
-        if (result.output) {
-          appendConsole(result.output, 'info');
-        }
-        if (result.error) {
-          appendConsole(result.error, 'error');
-        } else {
-          appendConsole('Process finished with exit code 0', 'success');
-        }
-        return;
-      }
-
-      // 2. Фоллбэк на потоковый эндпоинт (/api/compile/stream), если запущен Node server.js
-      let streamResponse = await fetch('/api/compile/stream', {
+      const response = await fetch('http://localhost:8081/api/compile/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -596,6 +433,7 @@ export default function App() {
     }
   };
 
+  // отправка введенного числа в работающую программу по нажатию Enter
   const handleSendInteractiveInput = async () => {
     if (!stdinInput.trim() && stdinInput === '') return;
     const valueToSend = stdinInput;
@@ -873,8 +711,10 @@ export default function App() {
         </div>
       </div>
 
+      {/* основная часть экрана */}
       <div style={{ display: 'flex', flex: 1, gap: '6px', minHeight: 0, overflow: 'hidden' }}>
         
+        {/* дерево проекта слева */}
         <div style={{ ...panelCardStyle(theme), width: '240px', flexShrink: 0 }}>
           <div style={panelHeaderStyle(theme)}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
@@ -887,11 +727,15 @@ export default function App() {
           </div>
         </div>
 
+        {/* правая часть интерфейса */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0, minHeight: 0 }}>
           
           <div style={{ flex: 1, display: 'flex', gap: '6px', minHeight: 0, overflow: 'hidden' }}>
             
+            {/* центральное окно блок-схем с вкладками открытых файлов СВЕРХУ (как на фото 3) */}
             <div style={{ ...panelCardStyle(theme), flex: 1, minWidth: 0 }}>
+              
+              {/* панель вкладок открытых файлов сверху (с перетаскиванием мышкой и крестиками, без плюса) */}
               <div
                 style={{
                   display: 'flex',
@@ -1266,7 +1110,7 @@ export default function App() {
               <div onMouseDown={startResizingConsole} style={{ height: '4px', cursor: 'ns-resize', backgroundColor: 'transparent', flexShrink: 0 }} />
 
               <div style={{ flex: 1, display: 'flex', gap: '6px', minHeight: 0, overflow: 'hidden' }}>
-                
+
                 {isCodeOpen && (
                   <div
                     onMouseDown={() => setFocusedDock('code')}
