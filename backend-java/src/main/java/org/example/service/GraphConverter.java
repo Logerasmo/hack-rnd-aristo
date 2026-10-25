@@ -18,19 +18,35 @@ public class GraphConverter {
 
     // Принимаем на вход конкретный метод (например, "method: getStatusDescription...")
     public GraphDTO convertMethod(TreeNode methodNode) {
-
         String startId = createNode("start", "Start", 0);
 
         String lastId = startId;
-        // Обходим только детей этого метода (тело)
         for (TreeNode child : methodNode.getChildren()) {
             lastId = processNode(child, lastId);
         }
 
-        // Если последняя операция не была return, ставим End
+        // ВСЕГДА создаем узел End
+        String endId = createNode("end", "End", 0);
+
+        // Если последняя операция не была return (lastId != null),
+        // просто соединяем её с End
         if (lastId != null) {
-            String endId = createNode("end", "End", 0);
             addEdge(lastId, endId, null);
+        }
+
+        // А теперь самое важное: находим все узлы, из которых нет исходящих стрелок
+        // (это те самые return), и соединяем их с End.
+        // Для этого проверим, у каких узлов нет исходящих ребер.
+        Set<String> nodesWithOutgoingEdges = new HashSet<>();
+        for (EdgeDTO edge : edges) {
+            nodesWithOutgoingEdges.add(edge.source());
+        }
+
+        for (NodeDTO node : nodes) {
+            // Если из узла нет стрелок, и это не сам End — ведем стрелку в End
+            if (!nodesWithOutgoingEdges.contains(node.id()) && !node.id().equals(endId)) {
+                addEdge(node.id(), endId, null);
+            }
         }
 
         return new GraphDTO(nodes, edges);

@@ -4,38 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java">
-      <change afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/GraphConverter.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/tools/EdgeDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/tools/GraphDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/tools/NodeDTO.java" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/tools/service" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="upd1">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/HackrndApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/HackrndApplication.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/controller/GraphController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/controller/GraphController.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/HackrndApplication.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/controller/AiController.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/controller/ExecutionController.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/controller/GraphController.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/dto/AnalyzeCode.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/dto/AnalyzeTest.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/dto/CodeRequestDTO.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/dto/ExecutionDto$Request.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/dto/ExecutionDto$Response.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/dto/ExecutionDto.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/AiService.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/ExecutionService$SimpleJavaFileObjectImpl.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/ExecutionService.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/ParserService.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/tools/AnalyzeCodeParser.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/tools/AnalyzeTestParser.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/tools/FeaturesDemo$Task.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/tools/FeaturesDemo$TaskStatus.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/tools/FeaturesDemo.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/tools/TreeNode.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/classes/org/example/service/tools/example.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/frontend/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/GraphConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/GraphConverter.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -52,7 +23,7 @@
   <component name="Git.Settings">
     <option name="RECENT_BRANCH_BY_REPOSITORY">
       <map>
-        <entry key="$PROJECT_DIR$" value="main" />
+        <entry key="$PROJECT_DIR$" value="not-stable" />
       </map>
     </option>
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
@@ -84,7 +55,7 @@
   "keyToString": {
     "Application.HackrndApplication.executor": "Run",
     "RunOnceActivity.ShowReadmeOnStart": "true",
-    "git-widget-placeholder": "not-stable",
+    "git-widget-placeholder": "graph",
     "kotlin-language-version-configured": "true",
     "last_opened_file_path": "D:/Coding/proj",
     "project.structure.last.edited": "Project",
@@ -110,7 +81,31 @@
       <option name="project" value="LOCAL" />
       <updated>1792868765279</updated>
     </task>
-    <option name="localTasksCounter" value="2" />
+    <task id="LOCAL-00002" summary="&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java">
+      <option name="closed" value="true" />
+      <created>1792881720591</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1792881720591</updated>
+    </task>
+    <task id="LOCAL-00003" summary="&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java">
+      <option name="closed" value="true" />
+      <created>1792882009952</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1792882009952</updated>
+    </task>
+    <task id="LOCAL-00004" summary="upd1">
+      <option name="closed" value="true" />
+      <created>1792882046962</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1792882046962</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -127,6 +122,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="fix" />
     <MESSAGE value="&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java" />
-    <option name="LAST_COMMIT_MESSAGE" value="&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java" />
+    <MESSAGE value="upd1" />
+    <option name="LAST_COMMIT_MESSAGE" value="upd1" />
   </component>
 </project>
