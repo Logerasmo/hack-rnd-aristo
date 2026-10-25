@@ -71,13 +71,19 @@ const DEFAULT_JAVA_CODE = `import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите первое число:");
-        int a = scanner.nextInt();
-        System.out.println("Введите второе число:");
-        int b = scanner.nextInt();
-        System.out.println("Сумма: " + (a + b));
-        scanner.close();
+        int sum = 0;
+
+        for (int i = 0; i < 10; i++) {
+            if (i % 2 == 0) {
+                sum += i;
+                System.out.println("Четное: " + i);
+            } else {
+                sum -= i;
+                System.out.println("Нечетное: " + i);
+            }
+        }
+
+        System.out.println("Результат: " + sum);
     }
 }`;
 
