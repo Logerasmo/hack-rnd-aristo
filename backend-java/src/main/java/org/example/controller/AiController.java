@@ -14,14 +14,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/ai")
 public class AiController {
+    private AiService aiService;
     @PostMapping("/tests")
     public List<AnalyzeTest> generateTests(@RequestBody CodeRequestDTO request) {
-        String rawResponse = AiService.getTests(request.getCode());
+        String rawResponse = aiService.getTests(request.getCode());
         return AnalyzeTestParser.parse(rawResponse);
     }
     @PostMapping("/analyze")
     public List<AnalyzeCode> analyzeCode(@RequestBody CodeRequestDTO request) {
-        String rawResponse = AiService.analyzeCode(request.getCode());
+        String rawResponse = aiService.analyzeCode(request.getCode());
         return AnalyzeCodeParser.parse(rawResponse);
     }
 }

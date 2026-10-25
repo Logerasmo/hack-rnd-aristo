@@ -1,0 +1,57 @@
+Index: .idea/workspace.xml
+IDEA additional info:
+Subsystem: com.intellij.openapi.diff.impl.patch.BaseRevisionTextPatchEP
+<+><?xml version=\"1.0\" encoding=\"UTF-8\"?>\r\n<project version=\"4\">\r\n  <component name=\"AutoImportSettings\">\r\n    <option name=\"autoReloadType\" value=\"SELECTIVE\" />\r\n  </component>\r\n  <component name=\"ChangeListManager\">\r\n    <list default=\"true\" id=\"39240f32-1634-4f20-8e3b-e28d2c6a530e\" name=\"Changes\" comment=\"upd1\">\r\n      <change beforePath=\"$PROJECT_DIR$/.idea/workspace.xml\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/.idea/workspace.xml\" afterDir=\"false\" />\r\n      <change beforePath=\"$PROJECT_DIR$/backend-java/src/main/java/org/example/service/GraphConverter.java\" beforeDir=\"false\" afterPath=\"$PROJECT_DIR$/backend-java/src/main/java/org/example/service/GraphConverter.java\" afterDir=\"false\" />\r\n    </list>\r\n    <option name=\"SHOW_DIALOG\" value=\"false\" />\r\n    <option name=\"HIGHLIGHT_CONFLICTS\" value=\"true\" />\r\n    <option name=\"HIGHLIGHT_NON_ACTIVE_CHANGELIST\" value=\"false\" />\r\n    <option name=\"LAST_RESOLUTION\" value=\"IGNORE\" />\r\n  </component>\r\n  <component name=\"FileTemplateManagerImpl\">\r\n    <option name=\"RECENT_TEMPLATES\">\r\n      <list>\r\n        <option value=\"Class\" />\r\n      </list>\r\n    </option>\r\n  </component>\r\n  <component name=\"Git.Settings\">\r\n    <option name=\"RECENT_BRANCH_BY_REPOSITORY\">\r\n      <map>\r\n        <entry key=\"$PROJECT_DIR$\" value=\"not-stable\" />\r\n      </map>\r\n    </option>\r\n    <option name=\"RECENT_GIT_ROOT_PATH\" value=\"$PROJECT_DIR$\" />\r\n  </component>\r\n  <component name=\"GitHubPullRequestSearchHistory\">{\r\n  &quot;lastFilter&quot;: {\r\n    &quot;state&quot;: &quot;OPEN&quot;,\r\n    &quot;assignee&quot;: &quot;Logerasmo&quot;\r\n  }\r\n}</component>\r\n  <component name=\"GithubPullRequestsUISettings\">{\r\n  &quot;selectedUrlAndAccountId&quot;: {\r\n    &quot;url&quot;: &quot;https://github.com/Logerasmo/hack-rnd-aristo/&quot;,\r\n    &quot;accountId&quot;: &quot;c94a7ce3-4c4b-4853-b9d0-8bbd947778c5&quot;\r\n  }\r\n}</component>\r\n  <component name=\"ProjectColorInfo\">{\r\n  &quot;associatedIndex&quot;: 8\r\n}</component>\r\n  <component name=\"ProjectId\" id=\"3L9ZNspPRxuYnri2DpyC4cwb8IW\" />\r\n  <component name=\"ProjectLevelVcsManager\" settingsEditedManually=\"true\">\r\n    <ConfirmationsSetting value=\"2\" id=\"Add\" />\r\n  </component>\r\n  <component name=\"ProjectViewState\">\r\n    <option name=\"hideEmptyMiddlePackages\" value=\"true\" />\r\n    <option name=\"showLibraryContents\" value=\"true\" />\r\n  </component>\r\n  <component name=\"PropertiesComponent\"><![CDATA[{\r\n  \"keyToString\": {\r\n    \"Application.HackrndApplication.executor\": \"Run\",\r\n    \"RunOnceActivity.ShowReadmeOnStart\": \"true\",\r\n    \"git-widget-placeholder\": \"graph\",\r\n    \"kotlin-language-version-configured\": \"true\",\r\n    \"last_opened_file_path\": \"D:/Coding/proj\",\r\n    \"project.structure.last.edited\": \"Project\",\r\n    \"project.structure.proportion\": \"0.15\",\r\n    \"project.structure.side.proportion\": \"0.2\",\r\n    \"settings.editor.selected.configurable\": \"project.propVCSSupport.DirectoryMappings\"\r\n  }\r\n}]]></component>\r\n  <component name=\"SpellCheckerSettings\" RuntimeDictionaries=\"0\" Folders=\"0\" CustomDictionaries=\"0\" DefaultDictionary=\"application-level\" UseSingleDictionary=\"true\" transferred=\"true\" />\r\n  <component name=\"TaskManager\">\r\n    <task active=\"true\" id=\"Default\" summary=\"Default task\">\r\n      <changelist id=\"39240f32-1634-4f20-8e3b-e28d2c6a530e\" name=\"Changes\" comment=\"tests0.4\" />\r\n      <created>1792868207555</created>\r\n      <option name=\"number\" value=\"Default\" />\r\n      <option name=\"presentableId\" value=\"Default\" />\r\n      <updated>1792868207555</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00001\" summary=\"&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792868765279</created>\r\n      <option name=\"number\" value=\"00001\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00001\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792868765279</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00002\" summary=\"&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792881720591</created>\r\n      <option name=\"number\" value=\"00002\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00002\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792881720591</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00003\" summary=\"&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792882009952</created>\r\n      <option name=\"number\" value=\"00003\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00003\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792882009952</updated>\r\n    </task>\r\n    <task id=\"LOCAL-00004\" summary=\"upd1\">\r\n      <option name=\"closed\" value=\"true\" />\r\n      <created>1792882046962</created>\r\n      <option name=\"number\" value=\"00004\" />\r\n      <option name=\"presentableId\" value=\"LOCAL-00004\" />\r\n      <option name=\"project\" value=\"LOCAL\" />\r\n      <updated>1792882046962</updated>\r\n    </task>\r\n    <option name=\"localTasksCounter\" value=\"5\" />\r\n    <servers />\r\n  </component>\r\n  <component name=\"Vcs.Log.Tabs.Properties\">\r\n    <option name=\"TAB_STATES\">\r\n      <map>\r\n        <entry key=\"MAIN\">\r\n          <value>\r\n            <State />\r\n          </value>\r\n        </entry>\r\n      </map>\r\n    </option>\r\n  </component>\r\n  <component name=\"VcsManagerConfiguration\">\r\n    <MESSAGE value=\"fix\" />\r\n    <MESSAGE value=\"&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java\" />\r\n    <MESSAGE value=\"upd1\" />\r\n    <option name=\"LAST_COMMIT_MESSAGE\" value=\"upd1\" />\r\n  </component>\r\n</project>
+Subsystem: com.intellij.openapi.diff.impl.patch.CharsetEP
+<+>UTF-8
+===================================================================
+diff --git a/.idea/workspace.xml b/.idea/workspace.xml
+--- a/.idea/workspace.xml	(revision 7fac684784b785da276748db0bfd413f5e3142ce)
++++ b/.idea/workspace.xml	(date 1792887937230)
+@@ -4,9 +4,8 @@
+     <option name="autoReloadType" value="SELECTIVE" />
+   </component>
+   <component name="ChangeListManager">
+-    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="upd1">
++    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="upd3">
+       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+-      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/GraphConverter.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/GraphConverter.java" afterDir="false" />
+     </list>
+     <option name="SHOW_DIALOG" value="false" />
+     <option name="HIGHLIGHT_CONFLICTS" value="true" />
+@@ -105,7 +104,23 @@
+       <option name="project" value="LOCAL" />
+       <updated>1792882046962</updated>
+     </task>
+-    <option name="localTasksCounter" value="5" />
++    <task id="LOCAL-00005" summary="upd2">
++      <option name="closed" value="true" />
++      <created>1792886684572</created>
++      <option name="number" value="00005" />
++      <option name="presentableId" value="LOCAL-00005" />
++      <option name="project" value="LOCAL" />
++      <updated>1792886684572</updated>
++    </task>
++    <task id="LOCAL-00006" summary="upd3">
++      <option name="closed" value="true" />
++      <created>1792887930388</created>
++      <option name="number" value="00006" />
++      <option name="presentableId" value="LOCAL-00006" />
++      <option name="project" value="LOCAL" />
++      <updated>1792887930388</updated>
++    </task>
++    <option name="localTasksCounter" value="7" />
+     <servers />
+   </component>
+   <component name="Vcs.Log.Tabs.Properties">
+@@ -123,6 +138,8 @@
+     <MESSAGE value="fix" />
+     <MESSAGE value="&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java" />
+     <MESSAGE value="upd1" />
+-    <option name="LAST_COMMIT_MESSAGE" value="upd1" />
++    <MESSAGE value="upd2" />
++    <MESSAGE value="upd3" />
++    <option name="LAST_COMMIT_MESSAGE" value="upd3" />
+   </component>
+ </project>
+\ No newline at end of file
