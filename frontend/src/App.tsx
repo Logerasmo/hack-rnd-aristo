@@ -6,7 +6,7 @@ import {
   Folder, FolderOpen, FileCode, Play, Upload, FolderUp,
   Download, Terminal, ChevronRight, ChevronDown,
   Maximize2, Minimize2, Trash2, X, Settings, Moon, Sun,
-  ZoomIn, ZoomOut, CheckSquare, GitBranch, Code2, Send
+  ZoomIn, ZoomOut, CheckSquare, GitBranch, Code2, Send, Sparkles
 } from 'lucide-react';
 
 interface FileNode {
@@ -27,6 +27,19 @@ interface LogEntry {
   time: string;
   text: string;
   type?: 'info' | 'success' | 'error' | 'input';
+}
+
+interface AnalyzeTest {
+  name: string;
+  code: string;
+}
+
+interface AnalyzeCode {
+  name: string;
+  level: string;
+  description: string;
+  place: string;
+  codeToFix?: string;
 }
 
 function buildFileTree(files: FileNode[]): TreeNode[] {
@@ -66,17 +79,36 @@ function buildFileTree(files: FileNode[]): TreeNode[] {
   return root;
 }
 
-const DEFAULT_JAVA_CODE = `import java.util.Scanner;
+// Автоматическое определение имени главного класса из исходного кода Java
+function extractJavaClassName(code: string, fallbackFileName: string): string {
+  // 1. Ищем public class Name
+  const publicClassMatch = code.match(/public\s+class\s+([A-Za-z_$][A-Za-z0-9_$]*)/);
+  if (publicClassMatch && publicClassMatch[1]) {
+    return publicClassMatch[1];
+  }
 
-public class Main {
+  // 2. Ищем любой class Name, если public нет
+  const anyClassMatch = code.match(/class\s+([A-Za-z_$][A-Za-z0-9_$]*)/);
+  if (anyClassMatch && anyClassMatch[1]) {
+    return anyClassMatch[1];
+  }
+
+  // 3. Фоллбэк на имя файла без .java
+  return fallbackFileName.replace(/\.java$/i, '');
+}
+
+// Удаляем объявление package из кода при одиночной компиляции в корень tempDir, чтобы не было NoClassDefFoundError
+function stripPackageDeclaration(code: string): string {
+  return code.replace(/^\s*package\s+[a-zA-Z0-9_.]+\s*;/m, '// package removed for flat compilation');
+}
+
+const DEFAULT_JAVA_CODE = `public class Main {
     public static void main(String[] args) {
-        Scanner scanner = new Scanner(System.in);
-        System.out.println("Введите первое число:");
-        int a = scanner.nextInt();
-        System.out.println("Введите второе число:");
-        int b = scanner.nextInt();
+        int a = 15;
+        int b = 27;
+        System.out.println("Первое число: " + a);
+        System.out.println("Второе число: " + b);
         System.out.println("Сумма: " + (a + b));
-        scanner.close();
     }
 }`;
 
@@ -87,14 +119,10 @@ export default function App() {
   ]);
   const [activeFilePath, setActiveFilePath] = useState<string>('Main.java');
 
-  // переключение темы
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
-
-  // строка живого ввода в консоль во время работы кода
   const [stdinInput, setStdinInput] = useState<string>('');
   const sessionIdRef = useRef<string>('session-' + Math.random().toString(36).slice(2));
 
-  // вкладки файлов сверху над блок-схемами
   const [openTabs, setOpenTabs] = useState<string[]>(() => [files[0]?.path || 'Main.java']);
   const [draggedTabPath, setDraggedTabPath] = useState<string | null>(null);
 
@@ -112,6 +140,19 @@ export default function App() {
   const [isConsoleMaximized, setIsConsoleMaximized] = useState<boolean>(false);
   const [analysisTab, setAnalysisTab] = useState<'problems' | 'recs' | 'metrics'>('problems');
   const [isRunning, setIsRunning] = useState<boolean>(false);
+
+  const [generatedTests, setGeneratedTests] = useState<AnalyzeTest[]>([]);
+  const [isGeneratingTests, setIsGeneratingTests] = useState<boolean>(false);
+  const [hasGeneratedTests, setHasGeneratedTests] = useState<boolean>(false);
+
+  const [analysisErrors, setAnalysisErrors] = useState<AnalyzeCode[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState<boolean>(false);
+  const [hasAnalyzed, setHasAnalyzed] = useState<boolean>(false);
+
+  const [graphZoom, setGraphZoom] = useState<number>(1);
+  const [graphPan, setGraphPan] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDraggingGraph, setIsDraggingGraph] = useState<boolean>(false);
+  const dragStartRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
@@ -149,7 +190,6 @@ export default function App() {
     );
   };
 
-  // клик по файлу в дереве открывает вкладку сверху и код снизу
   const handleOpenFile = (path: string) => {
     setActiveFilePath(path);
     setIsCodeOpen(true);
@@ -159,7 +199,6 @@ export default function App() {
     }
   };
 
-  // закрытие вкладки сверху крестиком
   const handleCloseTab = (e: React.MouseEvent, path: string) => {
     e.stopPropagation();
     const newTabs = openTabs.filter((t) => t !== path);
@@ -172,7 +211,6 @@ export default function App() {
     }
   };
 
-  // перетаскивание верхних вкладок мышкой
   const handleTabDragStart = (e: React.DragEvent, path: string) => {
     setDraggedTabPath(path);
   };
@@ -224,6 +262,7 @@ export default function App() {
       appendConsole(`Files imported: ${newFiles.length}`);
       expandAll(newFiles);
     }
+    e.target.value = '';
   };
 
   const handleImportFolder = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -310,34 +349,218 @@ export default function App() {
     window.addEventListener('mouseup', handleMouseUp);
   };
 
-  // потоковый запуск программы с ожиданием ввода пользователя во время работы
+  const handleGraphMouseDown = (e: React.MouseEvent) => {
+    if ((e.target as HTMLElement).closest('.zoom-controls')) return;
+    setIsDraggingGraph(true);
+    dragStartRef.current = { x: e.clientX - graphPan.x, y: e.clientY - graphPan.y };
+  };
+
+  const handleGraphMouseMove = (e: React.MouseEvent) => {
+    if (!isDraggingGraph) return;
+    setGraphPan({
+      x: e.clientX - dragStartRef.current.x,
+      y: e.clientY - dragStartRef.current.y,
+    });
+  };
+
+  const handleGraphMouseUp = () => {
+    setIsDraggingGraph(false);
+  };
+
+  const handleGraphWheel = (e: React.WheelEvent) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.1 : -0.1;
+    setGraphZoom((prev) => Math.min(Math.max(+(prev + delta).toFixed(2), 0.25), 3));
+  };
+
+  const handleZoomIn = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setGraphZoom((prev) => Math.min(+(prev + 0.15).toFixed(2), 3));
+  };
+
+  const handleZoomOut = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setGraphZoom((prev) => Math.max(+(prev - 0.15).toFixed(2), 0.25));
+  };
+
+  const handleStartAnalysis = async () => {
+    if (!activeFile) return;
+
+    const javaCode = activeFile.content;
+    setIsConsoleOpen(true);
+    setIsAnalyzing(true);
+
+    appendConsole(`Sending code "${activeFile.name}" to backend (/api/ai/analyze)...`, 'info');
+    appendConsole('Starting code analysis...', 'info');
+
+    try {
+      let response = await fetch('/api/ai/analyze', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: javaCode }),
+      }).catch(() => null);
+
+      if (!response || response.status === 404) {
+        response = await fetch('http://localhost:8081/api/ai/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: javaCode }),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error status ${response.status}`);
+      }
+
+      const errors: AnalyzeCode[] = await response.json();
+      setAnalysisErrors(Array.isArray(errors) ? errors : []);
+      setHasAnalyzed(true);
+      setAnalysisTab('problems');
+
+      appendConsole(
+        `Analysis completed successfully. Issues found: ${Array.isArray(errors) ? errors.length : 0}`,
+        'success'
+      );
+    } catch (err: any) {
+      appendConsole(`Error during analysis: ${err.message}`, 'error');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleGenerateTests = async () => {
+    if (!activeFile) return;
+
+    const javaCode = activeFile.content;
+    setIsConsoleOpen(true);
+    setIsGeneratingTests(true);
+
+    appendConsole(`Sending code "${activeFile.name}" to backend (/api/ai/tests)...`, 'info');
+    appendConsole('Generating tests...', 'info');
+
+    try {
+      let response = await fetch('/api/ai/tests', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code: javaCode }),
+      }).catch(() => null);
+
+      if (!response || response.status === 404) {
+        response = await fetch('http://localhost:8081/api/ai/tests', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ code: javaCode }),
+        });
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error status ${response.status}`);
+      }
+
+      const tests: AnalyzeTest[] = await response.json();
+      setGeneratedTests(Array.isArray(tests) ? tests : []);
+      setHasGeneratedTests(true);
+
+      appendConsole(
+        `Code successfully accepted by backend. Tests generated: ${Array.isArray(tests) ? tests.length : 0}`,
+        'success'
+      );
+    } catch (err: any) {
+      appendConsole(`Error generating tests: ${err.message}`, 'error');
+    } finally {
+      setIsGeneratingTests(false);
+    }
+  };
+
+  // ИСПРАВЛЕННАЯ КОМПИЛЯЦИЯ: работает с любым именем файла (pervay.java, vtoray.java) и любой папкой
   const handleRun = async () => {
     if (!activeFile) return;
     setIsConsoleOpen(true);
     setFocusedDock('console');
     const now = () => new Date().toLocaleTimeString('ru-RU');
 
-    setLogs([{ time: now(), text: 'Начата компиляция...', type: 'info' }]);
+    setLogs([{ time: now(), text: `Compiling and running ${activeFile.name}...`, type: 'info' }]);
     setIsRunning(true);
 
     try {
-      const filesMap: Record<string, string> = {
-        [activeFile.path]: activeFile.content
+      // Вычисляем настоящее имя public class внутри активного файла (например, "Main" внутри "pervay.java")
+      const actualMainClass = extractJavaClassName(activeFile.content, activeFile.name);
+      const cleanedCode = stripPackageDeclaration(activeFile.content);
+
+      // Передаем файл под именем его public-класса (например, "Main.java") без вложенных папок,
+      // чтобы:
+      // 1) javac не ругался на "class Main is public, should be declared in a file named Main.java"
+      // 2) Files.writeString на бэкенде не падал с NoSuchFileException из-за несозданных подпапок
+      const compileFilesMap: Record<string, string> = {
+        [`${actualMainClass}.java`]: cleanedCode,
       };
 
-      const response = await fetch('http://localhost:8081/api/compile/stream', {
+      // 1. Запрос к Java-бэкенду (/api/compile/run)
+      let runResponse = await fetch('/api/compile/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          files: filesMap,
-          mainClass: activeFile.path,
+          files: compileFilesMap,
+          mainClass: actualMainClass,
+        }),
+      }).catch(() => null);
+
+      if (!runResponse || runResponse.status === 404) {
+        runResponse = await fetch('http://localhost:8081/api/compile/run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            files: compileFilesMap,
+            mainClass: actualMainClass,
+          }),
+        }).catch(() => null);
+      }
+
+      if (runResponse && runResponse.ok) {
+        const result: { output?: string; error?: string } = await runResponse.json();
+        if (result.output) {
+          appendConsole(result.output, 'info');
+        }
+        if (result.error) {
+          appendConsole(result.error, 'error');
+        } else {
+          appendConsole('Process finished with exit code 0', 'success');
+        }
+        return;
+      }
+
+      // 2. Фоллбэк на потоковый эндпоинт (/api/compile/stream), если запущен Node server.js
+      let streamResponse = await fetch('/api/compile/stream', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          files: compileFilesMap,
+          mainClass: `${actualMainClass}.java`,
           sessionId: sessionIdRef.current,
         }),
-      });
+      }).catch(() => null);
 
-      if (!response.body) throw new Error('Поток чтения недоступен');
+      if (!streamResponse || streamResponse.status === 404) {
+        streamResponse = await fetch('http://localhost:8081/api/compile/stream', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            files: compileFilesMap,
+            mainClass: `${actualMainClass}.java`,
+            sessionId: sessionIdRef.current,
+          }),
+        }).catch(() => null);
+      }
 
-      const reader = response.body.getReader();
+      if (!streamResponse || !streamResponse.ok) {
+        throw new Error(
+          'Compile endpoint not found (404). Make sure ExecutionController.java is uncommented and backend on port 8081 is running.'
+        );
+      }
+
+      if (!streamResponse.body) throw new Error('Stream reader unavailable');
+
+      const reader = streamResponse.body.getReader();
       const decoder = new TextDecoder('utf-8');
       let buffer = '';
 
@@ -367,13 +590,12 @@ export default function App() {
         }
       }
     } catch (err: any) {
-      appendConsole(`Ошибка связи с сервером: ${err.message}`, 'error');
+      appendConsole(`Server connection error: ${err.message}`, 'error');
     } finally {
       setIsRunning(false);
     }
   };
 
-  // отправка введенного числа в работающую программу по нажатию Enter
   const handleSendInteractiveInput = async () => {
     if (!stdinInput.trim() && stdinInput === '') return;
     const valueToSend = stdinInput;
@@ -391,9 +613,14 @@ export default function App() {
           }),
         });
       } catch (err: any) {
-        appendConsole(`Не удалось передать ввод: ${err.message}`, 'error');
+        appendConsole(`Failed to send input: ${err.message}`, 'error');
       }
     }
+  };
+
+  const handleApplyFix = (codeToFix: string) => {
+    appendConsole(`Code snippet copied to clipboard`, 'success');
+    navigator.clipboard?.writeText(codeToFix);
   };
 
   const renderTree = (nodes: TreeNode[], depth = 0) => {
@@ -417,7 +644,7 @@ export default function App() {
               }}
             >
               {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
-              {isOpen ? <FolderOpen size={15} color="#7a889b" /> : <Folder size={15} color="#7a889b" />}
+              <FolderOpen size={15} color="#7a889b" />
               <span>{node.name}</span>
             </div>
             {isOpen && node.children && (
@@ -485,6 +712,8 @@ export default function App() {
     editorTheme: isDarkMode ? 'vs-dark' : 'vs',
   };
 
+  const scaledGridSize = Math.max(8, Math.round(24 * graphZoom));
+
   return (
     <div
       style={{
@@ -500,7 +729,56 @@ export default function App() {
         transition: 'background-color 0.3s ease, color 0.3s ease',
       }}
     >
-      {/* верхняя шапка с кнопками */}
+      <style>{`
+        .hover-scale-btn {
+          transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1), filter 0.2s ease, box-shadow 0.2s ease !important;
+        }
+        .hover-scale-btn:hover:not(:disabled) {
+          transform: scale(1.06) !important;
+        }
+        .hover-scale-btn:active:not(:disabled) {
+          transform: scale(0.98) !important;
+        }
+        .start-analysis-btn {
+          padding: 10px 24px;
+          border-radius: 8px;
+          font-size: 13.5px;
+          font-weight: 600;
+          color: #0b1f11;
+          border: 1px solid #4ade80;
+          cursor: pointer;
+          background: linear-gradient(90deg, #16a34a 0%, #22c55e 25%, #86efac 50%, #98fb98 75%, #a7f3d0 100%);
+          background-size: 250% 100%;
+          background-position: 100% 0;
+          box-shadow: 0 4px 14px rgba(74, 222, 128, 0.2);
+          transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), background-position 0.55s ease, box-shadow 0.3s ease, color 0.3s ease;
+        }
+        .start-analysis-btn:hover:not(:disabled) {
+          transform: scale(1.08);
+          background-position: 0% 0;
+          color: #ffffff;
+          box-shadow: 0 6px 20px rgba(34, 197, 94, 0.45);
+        }
+        .start-analysis-btn:disabled {
+          opacity: 0.7;
+          cursor: wait;
+        }
+        .zoom-icon-btn {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          padding: 3px;
+          border-radius: 4px;
+          cursor: pointer;
+          transition: transform 0.2s ease, color 0.2s ease, background-color 0.2s ease;
+        }
+        .zoom-icon-btn:hover {
+          transform: scale(1.18);
+          color: #58a6ff;
+          background-color: rgba(88, 166, 255, 0.12);
+        }
+      `}</style>
+
       <div
         style={{
           display: 'flex',
@@ -517,7 +795,7 @@ export default function App() {
           <div style={{ width: '22px', height: '22px', borderRadius: '5px', backgroundColor: '#1f6feb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontSize: '12px', fontWeight: 800 }}>
             J
           </div>
-          <span>Test Dev</span>
+          <span>Java IDE</span>
         </div>
 
         <input type="file" ref={fileInputRef} onChange={handleImport} multiple accept=".java,.zip" style={{ display: 'none' }} />
@@ -525,7 +803,11 @@ export default function App() {
 
         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
           <div style={{ position: 'relative' }}>
-            <button onClick={() => setShowImportMenu((prev) => !prev)} style={btnStyle(isDarkMode)}>
+            <button
+              className="hover-scale-btn"
+              onClick={() => setShowImportMenu((prev) => !prev)}
+              style={btnStyle(isDarkMode)}
+            >
               <Upload size={15} color="#58a6ff" /> Import <ChevronDown size={14} />
             </button>
 
@@ -554,11 +836,16 @@ export default function App() {
             )}
           </div>
 
-          <button onClick={handleExport} style={btnStyle(isDarkMode)}>
+          <button className="hover-scale-btn" onClick={handleExport} style={btnStyle(isDarkMode)}>
             <Download size={15} /> Export Java
           </button>
 
-          <button onClick={handleRun} disabled={isRunning} style={{ ...btnStyle(isDarkMode), backgroundColor: '#194a2d', borderColor: '#266d42', color: '#7ee787' }}>
+          <button
+            className="hover-scale-btn"
+            onClick={handleRun}
+            disabled={isRunning}
+            style={{ ...btnStyle(isDarkMode), backgroundColor: '#194a2d', borderColor: '#266d42', color: '#7ee787' }}
+          >
             <Play size={15} /> {isRunning ? 'Running...' : 'Launch'}
           </button>
         </div>
@@ -586,10 +873,8 @@ export default function App() {
         </div>
       </div>
 
-      {/* основная часть экрана */}
       <div style={{ display: 'flex', flex: 1, gap: '6px', minHeight: 0, overflow: 'hidden' }}>
         
-        {/* дерево проекта слева */}
         <div style={{ ...panelCardStyle(theme), width: '240px', flexShrink: 0 }}>
           <div style={panelHeaderStyle(theme)}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
@@ -602,15 +887,11 @@ export default function App() {
           </div>
         </div>
 
-        {/* правая часть интерфейса */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0, minHeight: 0 }}>
           
           <div style={{ flex: 1, display: 'flex', gap: '6px', minHeight: 0, overflow: 'hidden' }}>
             
-            {/* центральное окно блок-схем с вкладками открытых файлов СВЕРХУ (как на фото 3) */}
             <div style={{ ...panelCardStyle(theme), flex: 1, minWidth: 0 }}>
-              
-              {/* панель вкладок открытых файлов сверху (с перетаскиванием мышкой и крестиками, без плюса) */}
               <div
                 style={{
                   display: 'flex',
@@ -668,70 +949,310 @@ export default function App() {
                 })}
               </div>
 
-              {/* поле в клетку под блок-схемы */}
               <div
+                onMouseDown={handleGraphMouseDown}
+                onMouseMove={handleGraphMouseMove}
+                onMouseUp={handleGraphMouseUp}
+                onMouseLeave={handleGraphMouseUp}
+                onWheel={handleGraphWheel}
+                onContextMenu={(e) => e.preventDefault()}
                 style={{
                   flex: 1,
                   position: 'relative',
+                  overflow: 'hidden',
                   backgroundColor: isDarkMode ? '#0c1017' : '#ffffff',
                   backgroundImage: `
                     linear-gradient(to right, rgba(56, 139, 253, 0.07) 1px, transparent 1px),
                     linear-gradient(to bottom, rgba(56, 139, 253, 0.07) 1px, transparent 1px)
                   `,
-                  backgroundSize: '24px 24px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
+                  backgroundSize: `${scaledGridSize}px ${scaledGridSize}px`,
+                  backgroundPosition: `${graphPan.x}px ${graphPan.y}px`,
+                  cursor: isDraggingGraph ? 'grabbing' : 'grab',
+                  userSelect: 'none',
                 }}
               >
-                <div style={{ position: 'absolute', top: '10px', right: '10px', display: 'flex', alignItems: 'center', gap: '8px', padding: '4px 10px', backgroundColor: theme.panelBg, border: `1px solid ${theme.border}`, borderRadius: '6px', fontSize: '12px', color: theme.subText }}>
-                  <ZoomOut size={13} style={{ cursor: 'pointer' }} />
-                  <ZoomIn size={13} style={{ cursor: 'pointer' }} />
-                  <span>100%</span>
+                <div
+                  className="zoom-controls"
+                  style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '10px',
+                    zIndex: 20,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    padding: '4px 10px',
+                    backgroundColor: theme.panelBg,
+                    border: `1px solid ${theme.border}`,
+                    borderRadius: '6px',
+                    fontSize: '12px',
+                    color: theme.subText,
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.25)',
+                  }}
+                >
+                  <div className="zoom-icon-btn" onClick={handleZoomOut} title="Zoom Out">
+                    <ZoomOut size={13} />
+                  </div>
+                  <div className="zoom-icon-btn" onClick={handleZoomIn} title="Zoom In">
+                    <ZoomIn size={13} />
+                  </div>
+                  <span
+                    onClick={() => { setGraphZoom(1); setGraphPan({ x: 0, y: 0 }); }}
+                    style={{ cursor: 'pointer', minWidth: '34px', textAlign: 'right' }}
+                    title="Click to reset view (100%)"
+                  >
+                    {Math.round(graphZoom * 100)}%
+                  </span>
                 </div>
-                <span style={{ color: isDarkMode ? '#30363d' : '#8c959f', fontSize: '13px', userSelect: 'none' }}>
-                  Flowchart area ({activeFile?.name})
-                </span>
+
+                <div
+                  style={{
+                    position: 'absolute',
+                    inset: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transform: `translate(${graphPan.x}px, ${graphPan.y}px) scale(${graphZoom})`,
+                    transformOrigin: 'center center',
+                    pointerEvents: 'none',
+                  }}
+                >
+                  <span style={{ color: isDarkMode ? '#30363d' : '#8c959f', fontSize: '13px', userSelect: 'none' }}>
+                    Flowchart area ({activeFile?.name})
+                  </span>
+                </div>
               </div>
             </div>
 
-            {/* окно анализа справа */}
-            <div style={{ ...panelCardStyle(theme), width: '300px', flexShrink: 0 }}>
+            <div style={{ ...panelCardStyle(theme), width: '310px', flexShrink: 0 }}>
               <div style={{ padding: '10px 12px', borderBottom: `1px solid ${theme.border}`, backgroundColor: theme.headerBg }}>
-                <div style={{ fontWeight: 600, fontSize: '13px', marginBottom: '8px' }}>Анализ</div>
-                <div style={{ display: 'flex', gap: '4px', backgroundColor: isDarkMode ? '#0b0e14' : '#eaeef2', padding: '3px', borderRadius: '6px' }}>
-                  {[
-                    { id: 'problems', label: 'Problem' },
-                    { id: 'recs', label: 'Recommendations' },
-                    { id: 'metrics', label: 'Metrics' },
-                  ].map((t) => (
-                    <div
-                      key={t.id}
-                      onClick={() => setAnalysisTab(t.id as any)}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: hasAnalyzed ? '8px' : '0' }}>
+                  <span style={{ fontWeight: 600, fontSize: '13px' }}>Analysis</span>
+                  {hasAnalyzed && (
+                    <button
+                      className="hover-scale-btn"
+                      onClick={handleStartAnalysis}
+                      disabled={isAnalyzing}
                       style={{
-                        flex: 1,
-                        textAlign: 'center',
-                        padding: '4px 6px',
+                        padding: '2px 8px',
                         fontSize: '11px',
                         borderRadius: '4px',
+                        backgroundColor: '#194a2d',
+                        border: '1px solid #266d42',
+                        color: '#7ee787',
                         cursor: 'pointer',
-                        backgroundColor: analysisTab === t.id ? (isDarkMode ? '#162844' : '#ffffff') : 'transparent',
-                        color: analysisTab === t.id ? '#58a6ff' : theme.subText,
                       }}
                     >
-                      {t.label}
-                    </div>
-                  ))}
+                      {isAnalyzing ? '...' : 'Re-run'}
+                    </button>
+                  )}
                 </div>
+
+                {hasAnalyzed && (
+                  <div style={{ display: 'flex', gap: '4px', backgroundColor: isDarkMode ? '#0b0e14' : '#eaeef2', padding: '3px', borderRadius: '6px' }}>
+                    {[
+                      { id: 'problems', label: 'Problem' },
+                      { id: 'recs', label: 'Recommendations' },
+                      { id: 'metrics', label: 'Metrics' },
+                    ].map((t) => (
+                      <div
+                        key={t.id}
+                        className="hover-scale-btn"
+                        onClick={() => setAnalysisTab(t.id as any)}
+                        style={{
+                          flex: 1,
+                          textAlign: 'center',
+                          padding: '4px 6px',
+                          fontSize: '11px',
+                          borderRadius: '4px',
+                          cursor: 'pointer',
+                          backgroundColor: analysisTab === t.id ? (isDarkMode ? '#162844' : '#ffffff') : 'transparent',
+                          color: analysisTab === t.id ? '#58a6ff' : theme.subText,
+                        }}
+                      >
+                        {t.label}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
-              <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.subText, fontSize: '12px' }}>
-                Code analysis window
+
+              <div style={{ flex: 1, display: 'flex', flexDirection: 'column', overflowY: 'auto', padding: '12px' }}>
+                {!hasAnalyzed ? (
+                  <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
+                    <button
+                      className="start-analysis-btn"
+                      onClick={handleStartAnalysis}
+                      disabled={isAnalyzing}
+                    >
+                      {isAnalyzing ? 'Analyzing...' : 'Start Analysis'}
+                    </button>
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {analysisTab === 'problems' && (
+                      <>
+                        {analysisErrors.length === 0 ? (
+                          <div style={{ textAlign: 'center', color: theme.subText, fontSize: '12px', marginTop: '24px' }}>
+                            No problems detected in {activeFile?.name}
+                          </div>
+                        ) : (
+                          analysisErrors.map((err, idx) => {
+                            const lvl = (err.level || '').toLowerCase();
+                            const isHigh = lvl.includes('высок') || lvl.includes('high');
+                            const isMed = lvl.includes('средн') || lvl.includes('med');
+                            const badgeBg = isHigh ? 'rgba(248, 81, 73, 0.18)' : isMed ? 'rgba(210, 153, 34, 0.18)' : 'rgba(56, 139, 253, 0.18)';
+                            const badgeColor = isHigh ? '#f85149' : isMed ? '#d29922' : '#58a6ff';
+
+                            return (
+                              <div
+                                key={idx}
+                                style={{
+                                  padding: '10px',
+                                  borderRadius: '6px',
+                                  backgroundColor: theme.headerBg,
+                                  border: `1px solid ${theme.border}`,
+                                  fontSize: '12px',
+                                  display: 'flex',
+                                  flexDirection: 'column',
+                                  gap: '6px',
+                                }}
+                              >
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '6px' }}>
+                                  <span style={{ fontWeight: 600, color: theme.text }}>{err.name}</span>
+                                  {err.level && (
+                                    <span style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px', backgroundColor: badgeBg, color: badgeColor, fontWeight: 600, flexShrink: 0 }}>
+                                      {err.level}
+                                    </span>
+                                  )}
+                                </div>
+
+                                <div style={{ color: theme.subText, fontSize: '11.5px', lineHeight: 1.45 }}>
+                                  {err.description}
+                                </div>
+
+                                {err.place && (
+                                  <div style={{ fontSize: '11px', color: '#58a6ff', fontFamily: 'Consolas, monospace' }}>
+                                    {err.place}
+                                  </div>
+                                )}
+
+                                {err.codeToFix && (
+                                  <div style={{ marginTop: '2px' }}>
+                                    <pre
+                                      style={{
+                                        margin: 0,
+                                        padding: '6px 8px',
+                                        borderRadius: '4px',
+                                        backgroundColor: isDarkMode ? '#0b0e14' : '#eaeef2',
+                                        border: `1px solid ${theme.border}`,
+                                        color: '#ffffff',
+                                        fontSize: '11px',
+                                        fontFamily: 'Consolas, monospace',
+                                        overflowX: 'auto',
+                                      }}
+                                    >
+                                      {err.codeToFix}
+                                    </pre>
+                                    <button
+                                      className="hover-scale-btn"
+                                      onClick={() => handleApplyFix(err.codeToFix!)}
+                                      style={{
+                                        marginTop: '6px',
+                                        padding: '3px 8px',
+                                        fontSize: '11px',
+                                        borderRadius: '4px',
+                                        backgroundColor: '#162844',
+                                        color: '#58a6ff',
+                                        border: '1px solid #264473',
+                                        cursor: 'pointer',
+                                      }}
+                                    >
+                                      Copy fix
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
+                      </>
+                    )}
+
+                    {analysisTab === 'recs' && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {analysisErrors.filter((e) => e.codeToFix).length === 0 ? (
+                          <div style={{ textAlign: 'center', color: theme.subText, fontSize: '12px', marginTop: '24px' }}>
+                            No additional recommendations.
+                          </div>
+                        ) : (
+                          analysisErrors
+                            .filter((e) => e.codeToFix)
+                            .map((err, idx) => (
+                              <div
+                                key={idx}
+                                style={{
+                                  padding: '10px',
+                                  borderRadius: '6px',
+                                  backgroundColor: theme.headerBg,
+                                  border: `1px solid ${theme.border}`,
+                                  fontSize: '12px',
+                                }}
+                              >
+                                <div style={{ fontWeight: 600, marginBottom: '4px' }}>{err.name}</div>
+                                <div style={{ fontSize: '11px', color: theme.subText, marginBottom: '6px' }}>
+                                  Suggested fix at <span style={{ color: '#58a6ff', fontFamily: 'monospace' }}>{err.place}</span>:
+                                </div>
+                                <pre
+                                  style={{
+                                    margin: 0,
+                                    padding: '6px 8px',
+                                    borderRadius: '4px',
+                                    backgroundColor: isDarkMode ? '#0b0e14' : '#eaeef2',
+                                    color: '#ffffff',
+                                    fontSize: '11px',
+                                    fontFamily: 'Consolas, monospace',
+                                    overflowX: 'auto',
+                                  }}
+                                >
+                                  {err.codeToFix}
+                                </pre>
+                              </div>
+                            ))
+                        )}
+                      </div>
+                    )}
+
+                    {analysisTab === 'metrics' && (
+                      <div
+                        style={{
+                          padding: '10px',
+                          borderRadius: '6px',
+                          backgroundColor: theme.headerBg,
+                          border: `1px solid ${theme.border}`,
+                          fontSize: '12px',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '8px',
+                        }}
+                      >
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: theme.subText }}>Total issues found:</span>
+                          <span style={{ fontWeight: 600 }}>{analysisErrors.length}</span>
+                        </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                          <span style={{ color: theme.subText }}>Lines of code:</span>
+                          <span style={{ fontWeight: 600 }}>{activeFile?.content.split('\n').length || 0}</span>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
 
           </div>
 
-          {/* нижний ярус окон: Code Java | Console | Test result */}
           {anyBottomWindowOpen && (
             <div
               style={{
@@ -746,7 +1267,6 @@ export default function App() {
 
               <div style={{ flex: 1, display: 'flex', gap: '6px', minHeight: 0, overflow: 'hidden' }}>
                 
-                {/* окно Code Java с 3 кнопками переключения окон */}
                 {isCodeOpen && (
                   <div
                     onMouseDown={() => setFocusedDock('code')}
@@ -817,7 +1337,7 @@ export default function App() {
                           style={getDockTabStyle('tests', isTestsOpen)}
                         >
                           <CheckSquare size={13} color={focusedDock === 'tests' ? '#58a6ff' : theme.subText} />
-                          <span>Test result</span>
+                          <span>Test</span>
                           {isTestsOpen && (
                             <X
                               size={13}
@@ -854,7 +1374,6 @@ export default function App() {
                   </div>
                 )}
 
-                {/* окно консоли с живым вводом во время работы программы */}
                 {isConsoleOpen && (
                   <div
                     onMouseDown={() => setFocusedDock('console')}
@@ -895,7 +1414,6 @@ export default function App() {
                       <div ref={consoleEndRef} />
                     </div>
 
-                    {/* живой ввод для Scanner: пишем число и жмем Enter прямо во время выполнения */}
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '6px 12px', borderTop: `1px solid ${theme.border}`, backgroundColor: theme.headerBg, fontSize: '12px' }}>
                       <span style={{ color: isRunning ? '#3fb950' : theme.subText, fontFamily: 'monospace', fontWeight: isRunning ? 600 : 400 }}>
                         System.in &gt;
@@ -910,7 +1428,7 @@ export default function App() {
                             handleSendInteractiveInput();
                           }
                         }}
-                        placeholder={isRunning ? 'Программа ждет ввод... введите значение и нажмите Enter' : 'Запустите программу для интерактивного ввода'}
+                        placeholder={isRunning ? 'Type input and press Enter...' : 'Run the program for interactive input'}
                         style={{ flex: 1, backgroundColor: 'transparent', border: 'none', outline: 'none', color: theme.text, fontFamily: 'Consolas, monospace', fontSize: '12px' }}
                       />
                       <Send
@@ -923,7 +1441,6 @@ export default function App() {
                   </div>
                 )}
 
-                {/* окно результатов тестов */}
                 {isTestsOpen && (
                   <div
                     onMouseDown={() => setFocusedDock('tests')}
@@ -937,12 +1454,82 @@ export default function App() {
                     <div style={panelHeaderStyle(theme)}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
                         <CheckSquare size={14} color="#58a6ff" />
-                        <span>Result Tests</span>
+                        <span>Test</span>
                       </div>
-                      <X size={14} style={{ cursor: 'pointer' }} onClick={() => setIsTestsOpen(false)} />
+                      <X
+                        size={14}
+                        style={{ cursor: 'pointer', color: theme.subText }}
+                        onClick={() => {
+                          setIsTestsOpen(false);
+                          setFocusedDock('code');
+                        }}
+                      />
                     </div>
-                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.subText, fontSize: '12px' }}>
-                      Test results window
+
+                    <div style={{ flex: 1, display: 'flex', flexDirection: 'column', padding: '12px', gap: '12px', overflowY: 'auto' }}>
+                      <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                        <button
+                          className="hover-scale-btn"
+                          onClick={handleGenerateTests}
+                          disabled={isGeneratingTests}
+                          style={{
+                            ...btnStyle(isDarkMode),
+                            flex: 1,
+                            justifyContent: 'center',
+                            opacity: isGeneratingTests ? 0.7 : 1,
+                          }}
+                        >
+                          <Sparkles size={14} color="#58a6ff" />
+                          <span>{isGeneratingTests ? 'Generating...' : 'Generate tests'}</span>
+                        </button>
+
+                        <button
+                          className="hover-scale-btn"
+                          disabled={!hasGeneratedTests}
+                          style={{
+                            ...btnStyle(isDarkMode),
+                            flex: 1,
+                            justifyContent: 'center',
+                            backgroundColor: hasGeneratedTests ? '#194a2d' : (isDarkMode ? '#181c24' : '#eaeef2'),
+                            borderColor: hasGeneratedTests ? '#266d42' : theme.border,
+                            color: hasGeneratedTests ? '#7ee787' : theme.subText,
+                            cursor: hasGeneratedTests ? 'pointer' : 'not-allowed',
+                            opacity: hasGeneratedTests ? 1 : 0.55,
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          <Play size={14} />
+                          <span>Run tests</span>
+                        </button>
+                      </div>
+
+                      {generatedTests.length === 0 ? (
+                        <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: theme.subText, fontSize: '12px', textAlign: 'center' }}>
+                          Click 'Generate tests' to send code from the Code Java window to the backend
+                        </div>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {generatedTests.map((test, idx) => (
+                            <div
+                              key={idx}
+                              style={{
+                                padding: '8px 10px',
+                                borderRadius: '6px',
+                                backgroundColor: theme.headerBg,
+                                border: `1px solid ${theme.border}`,
+                                fontSize: '12px',
+                              }}
+                            >
+                              <div style={{ fontWeight: 600, color: theme.text, marginBottom: '4px' }}>
+                                {idx + 1}. {test.name}
+                              </div>
+                              <pre style={{ margin: 0, fontSize: '11px', color: theme.subText, overflowX: 'auto', fontFamily: 'Consolas, monospace' }}>
+                                {test.code}
+                              </pre>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
