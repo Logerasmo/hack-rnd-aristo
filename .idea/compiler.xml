@@ -9,14 +9,10 @@
         <module name="backend-java" />
       </profile>
     </annotationProcessing>
-    <bytecodeTargetLevel>
-      <module name="hackrnd" target="23" />
-    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="backend-java" options="-parameters" />
-      <module name="hackrnd" options="-parameters" />
     </option>
   </component>
 </project>
