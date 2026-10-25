@@ -1,14 +1,32 @@
-.cg-root { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; background: #0c1017; }
-.cg-root.cg-light { background:#fff; }
-.cg-node {width:220px;min-height:52px;box-sizing:border-box; padding:12px 14px;border:1px solid #528ec8;border-radius:9px;background:#193350;color:#f1f6ff;font-size:12px;text-align:center;overflow-wrap:anywhere;box-shadow:0 5px 15px #0004;}
-.cg-node.cg-method,.cg-node.cg-class {background:#3d2c60;border-color:#a593ee}
-.cg-node.cg-condition {background:#4b3a1d;border-color:#e5b458}
-.cg-node.cg-loop {background:#322654;border-color:#b194f7}
-.cg-node.cg-return {background:#1a4b36;border-color:#58c98c}
-.cg-node.cg-merge {background:#263443;border-color:#72859a;min-height:38px}
-.cg-node .react-flow__handle { width:7px;height:7px;background:#c0d0fa;border:1px solid #182335; }
-.cg-overlay {position:absolute;left:14px;top:12px;z-index:5;max-width:55%;background:#132033e8;border:1px solid #364961;border-radius:7px;padding:7px 10px;color:#e4ebfa;font:12px system-ui;pointer-events:none;}
-.cg-overlay.cg-error {color:#ffcccc;border-color:#b05b5b;top:auto;bottom:14px;max-width:78%;pointer-events:auto;max-height:100px;overflow:auto}
-.cg-light .cg-overlay {background:#fffffff2;color:#334155}
-.cg-light .cg-overlay.cg-error {color:#b42323}
-.cg-empty {position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);pointer-events:none;color:#93a3bd;font:13px system-ui}
+/* Isolated React Flow styling based on the original dark reference. */
+.cg-root { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; background:#0b131e; font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif; }
+.cg-root.cg-light { background:#f5f8fc; }
+.cg-root .react-flow { background:transparent; }
+.cg-node { position:relative; display:flex; align-items:center; gap:10px; width:220px; min-height:58px; box-sizing:border-box; padding:10px 14px; border-radius:9px; border:1.5px solid #408edf; background:linear-gradient(135deg,#183657,#12243c); box-shadow:0 0 0 1px #29639c30,0 8px 22px #0005, inset 0 1px #ffffff15; color:#eaf3ff; }
+.cg-node-icon {flex:none; display:grid; place-items:center; width:26px; height:26px; border-radius:6px; color:#79baff; background:#327cca30; font-size:15px; line-height:1; font-weight:700; }
+.cg-node-label { display:block; flex:1; min-width:0; overflow-wrap:anywhere; white-space:pre-wrap; font:500 11.5px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; text-align:left; max-height:100px; overflow:hidden; }
+.cg-node.cg-start,.cg-node.cg-end,.cg-node.cg-return {background:linear-gradient(135deg,#143f32,#102f28);border-color:#45ca8c;box-shadow:0 6px 20px #0004,0 0 14px #34c78b16;}
+.cg-node.cg-start .cg-node-icon,.cg-node.cg-end .cg-node-icon,.cg-node.cg-return .cg-node-icon {color:#78e6b0;background:#1e976c40;}
+.cg-node.cg-condition {border-radius:0;clip-path:polygon(11% 0,89% 0,100% 50%,89% 100%,11% 100%,0 50%);border:none;background:linear-gradient(135deg,#b28331,#754b18);padding:15px 23px;min-height:72px;}
+.cg-node.cg-condition::before {content:'';position:absolute;inset:2px;clip-path:polygon(11% 0,89% 0,100% 50%,89% 100%,11% 100%,0 50%);background:linear-gradient(125deg,#3a2d1c,#2a231d);z-index:-1;}
+.cg-node.cg-condition .cg-node-icon {color:#ffd37b;background:#b7872340;}
+.cg-node.cg-loop {background:linear-gradient(135deg,#332750,#251d3c);border-color:#a385ed;}
+.cg-node.cg-loop .cg-node-icon {color:#c7aeff;background:#8c6cda30;}
+.cg-node.cg-method,.cg-node.cg-class {background:linear-gradient(135deg,#38275b,#261e43);border-color:#a385ed;}
+.cg-node.cg-method .cg-node-icon,.cg-node.cg-class .cg-node-icon {color:#d6bbff;background:#8c6cda35;}
+.cg-node.cg-merge {min-height:38px;background:#1e2b3e;border-color:#7088a6;}
+.cg-node.cg-merge .cg-node-icon {color:#a1b2ca;background:#ffffff18;}
+.cg-node .react-flow__handle {width:7px;height:7px;background:#9fc0ff;border:1px solid #101b2a;}
+.cg-root .react-flow__edge-text {font-size:11px;font-weight:600;fill:#d9e5f8;}
+.cg-root .react-flow__controls { margin:9px 9px 0 0; overflow:hidden; border:1px solid #354861; border-radius:8px; box-shadow:0 4px 16px #0004; }
+.cg-root .react-flow__controls-button { background:#172336; fill:#b9cbe3; border-bottom:1px solid #324155; }
+.cg-root .react-flow__controls-button:hover {background:#293e59;}
+.cg-root .react-flow__controls-button svg { fill:currentColor; }
+.cg-root .react-flow__minimap {border:1px solid #364963;border-radius:8px;overflow:hidden;background:#141e2d;}
+.cg-overlay {position:absolute;top:12px;left:12px;z-index:5;max-width:58%;padding:8px 12px;border-radius:8px;border:1px solid #334761;background:#142135eb;color:#d9e6fb;font:600 12px/1.3 system-ui;pointer-events:none;box-shadow:0 4px 14px #0003;}
+.cg-overlay.cg-error {top:auto;bottom:12px;max-width:76%;max-height:110px;overflow:auto;pointer-events:auto;color:#ffd5d5;border-color:#b85a6b;}
+.cg-empty {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#8496ad;font:13px system-ui;pointer-events:none;}
+.cg-light .cg-overlay {background:#fffffff0;color:#30415a;border-color:#d5dfea;}
+.cg-light .cg-overlay.cg-error {color:#a12838;}
+.cg-light .react-flow__controls-button {background:#fff;fill:#344b67;}
+.cg-light .react-flow__edge-text {fill:#3a4b60;}

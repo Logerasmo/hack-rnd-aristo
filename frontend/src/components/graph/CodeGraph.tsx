@@ -16,10 +16,16 @@ type GraphNode = Node<GraphData>;
 type Props = { code: string; fileName: string; isDarkMode: boolean };
 
 function FlowBlock({ data }: NodeProps<GraphNode>) {
+  const kind = data.kind.toLowerCase();
+  const icon: Record<string, string> = {
+    start: '▶', end: '■', operation: '≡', condition: '◆',
+    loop: '↻', return: '↩', method: 'ƒ', class: '◇', merge: '•',
+  };
   return (
-    <div className={`cg-node cg-${data.kind}`} title={data.line > 0 ? `Строка ${data.line}` : undefined}>
+    <div className={`cg-node cg-${kind}`} title={data.line > 0 ? `Строка ${data.line}` : undefined}>
       <Handle type="target" position={Position.Top} />
-      {data.label}
+      <span className="cg-node-icon" aria-hidden="true">{icon[kind] ?? '≡'}</span>
+      <span className="cg-node-label">{data.label}</span>
       <Handle type="source" position={Position.Bottom} />
     </div>
   );
@@ -49,7 +55,10 @@ function buildGraph(graphs: GraphDTO[]): { nodes: GraphNode[]; edges: Edge[] } {
         label: edge.label ?? undefined,
         type: 'smoothstep',
         markerEnd: { type: MarkerType.ArrowClosed },
-        style: { stroke: '#8796ac', strokeWidth: 1.7 },
+        style: { stroke: '#8c9bb4', strokeWidth: 2 },
+        labelBgPadding: [7, 4],
+        labelBgBorderRadius: 5,
+        labelBgStyle: { fill: '#142031', fillOpacity: 0.96 },
         labelStyle: { fill: '#b3c3d8', fontSize: 11 },
       });
     }
@@ -146,7 +155,7 @@ export default function CodeGraph({ code, fileName, isDarkMode }: Props) {
         fitView fitViewOptions={{ padding: 0.2 }}
         nodesConnectable={false} minZoom={0.1} maxZoom={2}
       >
-        <Background variant={BackgroundVariant.Lines} gap={24} size={1} color={isDarkMode ? '#243147' : '#e3e9f3'} />
+        <Background variant={BackgroundVariant.Lines} gap={20} size={1} color={isDarkMode ? '#223148' : '#dfe6f0'} />
         <Controls position="top-right" showInteractive={false} />
         <MiniMap position="bottom-right" pannable zoomable />
       </ReactFlow>
