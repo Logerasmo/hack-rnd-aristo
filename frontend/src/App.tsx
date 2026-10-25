@@ -1,5 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import Editor from '@monaco-editor/react';
+import CodeGraph from './components/graph/CodeGraph';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import {
@@ -104,11 +105,19 @@ function stripPackageDeclaration(code: string): string {
 
 const DEFAULT_JAVA_CODE = `public class Main {
     public static void main(String[] args) {
-        int a = 15;
-        int b = 27;
-        System.out.println("Первое число: " + a);
-        System.out.println("Второе число: " + b);
-        System.out.println("Сумма: " + (a + b));
+        int sum = 0;
+
+        for (int i = 0; i < 10; i++) {
+            if (i % 2 == 0) {
+                sum += i;
+                System.out.println("Четное: " + i);
+            } else {
+                sum -= i;
+                System.out.println("Нечетное: " + i);
+            }
+        }
+
+        System.out.println("Результат: " + sum);
     }
 }`;
 
@@ -874,7 +883,7 @@ export default function App() {
       </div>
 
       <div style={{ display: 'flex', flex: 1, gap: '6px', minHeight: 0, overflow: 'hidden' }}>
-        
+
         <div style={{ ...panelCardStyle(theme), width: '240px', flexShrink: 0 }}>
           <div style={panelHeaderStyle(theme)}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontWeight: 600 }}>
@@ -890,7 +899,7 @@ export default function App() {
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '6px', minWidth: 0, minHeight: 0 }}>
           
           <div style={{ flex: 1, display: 'flex', gap: '6px', minHeight: 0, overflow: 'hidden' }}>
-            
+
             <div style={{ ...panelCardStyle(theme), flex: 1, minWidth: 0 }}>
               <div
                 style={{
@@ -1266,7 +1275,7 @@ export default function App() {
               <div onMouseDown={startResizingConsole} style={{ height: '4px', cursor: 'ns-resize', backgroundColor: 'transparent', flexShrink: 0 }} />
 
               <div style={{ flex: 1, display: 'flex', gap: '6px', minHeight: 0, overflow: 'hidden' }}>
-                
+
                 {isCodeOpen && (
                   <div
                     onMouseDown={() => setFocusedDock('code')}

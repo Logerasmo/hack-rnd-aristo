@@ -1,0 +1,7 @@
+
+### POST http://localhost:8081/api/ai/tests
+Content-Type: application/json
+
+{
+  "code": "public class Main { public static void main(String[] args) {} }"
+}
