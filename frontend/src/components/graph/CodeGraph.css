@@ -1,32 +1,60 @@
-/* Isolated React Flow styling based on the original dark reference. */
+/* Styles stay isolated to the graph component. No global app styles are changed. */
 .cg-root { position:absolute; inset:0; width:100%; height:100%; overflow:hidden; background:#0b131e; font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif; }
 .cg-root.cg-light { background:#f5f8fc; }
 .cg-root .react-flow { background:transparent; }
-.cg-node { position:relative; display:flex; align-items:center; gap:10px; width:220px; min-height:58px; box-sizing:border-box; padding:10px 14px; border-radius:9px; border:1.5px solid #408edf; background:linear-gradient(135deg,#183657,#12243c); box-shadow:0 0 0 1px #29639c30,0 8px 22px #0005, inset 0 1px #ffffff15; color:#eaf3ff; }
-.cg-node-icon {flex:none; display:grid; place-items:center; width:26px; height:26px; border-radius:6px; color:#79baff; background:#327cca30; font-size:15px; line-height:1; font-weight:700; }
+
+/* Outer method rectangle. React Flow positions every method's blocks inside it. */
+.cg-function-frame { position:relative; width:100%; height:100%; box-sizing:border-box; border:2px solid #7d6abb; border-radius:13px; background:rgba(24,22,44,.28); box-shadow:0 10px 38px #0003, 0 0 0 1px #a48cdf20, inset 0 1px #d4c6ff20; overflow:visible; }
+.cg-function-frame::before { content:''; position:absolute; top:0; left:0; right:0; height:64px; border-bottom:1px solid #8e79ba48; border-radius:11px 11px 0 0; background:linear-gradient(90deg,#32264d,#1b1d35 75%); pointer-events:none; }
+.cg-function-header { position:relative; z-index:1; display:flex; align-items:center; gap:12px; min-height:62px; box-sizing:border-box; padding:12px 20px; color:#f3eefe; }
+.cg-function-icon { flex:none; display:grid; place-items:center; width:35px; height:35px; border-radius:8px; font-size:21px; font-weight:700; color:#d6baff; background:#a07de82a; border:1px solid #a38bd54a; }
+.cg-function-heading { min-width:0; flex:1; display:flex; flex-direction:column; gap:4px; }
+.cg-function-eyebrow { font-size:9px; font-weight:800; letter-spacing:.16em; color:#a99cc8; }
+.cg-function-title { overflow-wrap:anywhere; font:700 16px/1.3 ui-monospace,SFMono-Regular,Consolas,monospace; }
+.cg-function-count { flex:none; padding:5px 10px; border:1px solid #73618d; background:#352a4c; border-radius:20px; font-size:11px; font-weight:600; color:#cabbeb; }
+
+.cg-node { position:relative; display:flex; align-items:center; gap:10px; width:232px; min-height:60px; box-sizing:border-box; padding:10px 14px; border-radius:9px; border:1.5px solid #408edf; background:linear-gradient(135deg,#183657,#12243c); box-shadow:0 0 0 1px #29639c30,0 8px 22px #0005,inset 0 1px #ffffff15; color:#eaf3ff; }
+.cg-node-icon { flex:none; display:grid; place-items:center; width:26px; height:26px; border-radius:6px; color:#79baff; background:#327cca30; font-size:15px; line-height:1; font-weight:700; }
 .cg-node-label { display:block; flex:1; min-width:0; overflow-wrap:anywhere; white-space:pre-wrap; font:500 11.5px/1.45 ui-monospace,SFMono-Regular,Consolas,monospace; text-align:left; max-height:100px; overflow:hidden; }
-.cg-node.cg-start,.cg-node.cg-end,.cg-node.cg-return {background:linear-gradient(135deg,#143f32,#102f28);border-color:#45ca8c;box-shadow:0 6px 20px #0004,0 0 14px #34c78b16;}
-.cg-node.cg-start .cg-node-icon,.cg-node.cg-end .cg-node-icon,.cg-node.cg-return .cg-node-icon {color:#78e6b0;background:#1e976c40;}
-.cg-node.cg-condition {border-radius:0;clip-path:polygon(11% 0,89% 0,100% 50%,89% 100%,11% 100%,0 50%);border:none;background:linear-gradient(135deg,#b28331,#754b18);padding:15px 23px;min-height:72px;}
-.cg-node.cg-condition::before {content:'';position:absolute;inset:2px;clip-path:polygon(11% 0,89% 0,100% 50%,89% 100%,11% 100%,0 50%);background:linear-gradient(125deg,#3a2d1c,#2a231d);z-index:-1;}
-.cg-node.cg-condition .cg-node-icon {color:#ffd37b;background:#b7872340;}
-.cg-node.cg-loop {background:linear-gradient(135deg,#332750,#251d3c);border-color:#a385ed;}
-.cg-node.cg-loop .cg-node-icon {color:#c7aeff;background:#8c6cda30;}
-.cg-node.cg-method,.cg-node.cg-class {background:linear-gradient(135deg,#38275b,#261e43);border-color:#a385ed;}
-.cg-node.cg-method .cg-node-icon,.cg-node.cg-class .cg-node-icon {color:#d6bbff;background:#8c6cda35;}
-.cg-node.cg-merge {min-height:38px;background:#1e2b3e;border-color:#7088a6;}
-.cg-node.cg-merge .cg-node-icon {color:#a1b2ca;background:#ffffff18;}
-.cg-node .react-flow__handle {width:7px;height:7px;background:#9fc0ff;border:1px solid #101b2a;}
-.cg-root .react-flow__edge-text {font-size:11px;font-weight:600;fill:#d9e5f8;}
+.cg-node.cg-start,.cg-node.cg-end,.cg-node.cg-return { background:linear-gradient(135deg,#143f32,#102f28); border-color:#45ca8c; box-shadow:0 6px 20px #0004,0 0 14px #34c78b16; }
+.cg-node.cg-start .cg-node-icon,.cg-node.cg-end .cg-node-icon,.cg-node.cg-return .cg-node-icon { color:#78e6b0; background:#1e976c40; }
+.cg-node.cg-condition { border-radius:0; clip-path:polygon(11% 0,89% 0,100% 50%,89% 100%,11% 100%,0 50%); border:none; background:linear-gradient(135deg,#b28331,#754b18); padding:15px 23px; min-height:80px; }
+.cg-node.cg-condition::before { content:''; position:absolute; inset:2px; clip-path:polygon(11% 0,89% 0,100% 50%,89% 100%,11% 100%,0 50%); background:linear-gradient(125deg,#3a2d1c,#2a231d); z-index:-1; }
+.cg-node.cg-condition .cg-node-icon { color:#ffd37b; background:#b7872340; }
+.cg-node.cg-loop { background:linear-gradient(135deg,#332750,#251d3c); border-color:#a385ed; }
+.cg-node.cg-loop .cg-node-icon { color:#c7aeff; background:#8c6cda30; }
+.cg-node .react-flow__handle { width:7px; height:7px; background:#9fc0ff; border:1px solid #101b2a; }
+.cg-root .react-flow__edge-text { font-size:11px; font-weight:600; fill:#d9e5f8; }
 .cg-root .react-flow__controls { margin:9px 9px 0 0; overflow:hidden; border:1px solid #354861; border-radius:8px; box-shadow:0 4px 16px #0004; }
 .cg-root .react-flow__controls-button { background:#172336; fill:#b9cbe3; border-bottom:1px solid #324155; }
-.cg-root .react-flow__controls-button:hover {background:#293e59;}
+.cg-root .react-flow__controls-button:hover { background:#293e59; }
 .cg-root .react-flow__controls-button svg { fill:currentColor; }
-.cg-root .react-flow__minimap {border:1px solid #364963;border-radius:8px;overflow:hidden;background:#141e2d;}
-.cg-overlay {position:absolute;top:12px;left:12px;z-index:5;max-width:58%;padding:8px 12px;border-radius:8px;border:1px solid #334761;background:#142135eb;color:#d9e6fb;font:600 12px/1.3 system-ui;pointer-events:none;box-shadow:0 4px 14px #0003;}
-.cg-overlay.cg-error {top:auto;bottom:12px;max-width:76%;max-height:110px;overflow:auto;pointer-events:auto;color:#ffd5d5;border-color:#b85a6b;}
-.cg-empty {position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#8496ad;font:13px system-ui;pointer-events:none;}
-.cg-light .cg-overlay {background:#fffffff0;color:#30415a;border-color:#d5dfea;}
-.cg-light .cg-overlay.cg-error {color:#a12838;}
-.cg-light .react-flow__controls-button {background:#fff;fill:#344b67;}
-.cg-light .react-flow__edge-text {fill:#3a4b60;}
+.cg-root .react-flow__minimap { border:1px solid #364963; border-radius:8px; overflow:hidden; background:#141e2d; }
+.cg-overlay { position:absolute; top:12px; left:12px; z-index:5; max-width:58%; padding:8px 12px; border-radius:8px; border:1px solid #334761; background:#142135eb; color:#d9e6fb; font:600 12px/1.3 system-ui; pointer-events:none; box-shadow:0 4px 14px #0003; }
+.cg-overlay.cg-error { top:auto; bottom:12px; max-width:76%; max-height:110px; overflow:auto; pointer-events:auto; color:#ffd5d5; border-color:#b85a6b; }
+.cg-empty { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); color:#8496ad; font:13px system-ui; pointer-events:none; }
+.cg-light .cg-function-frame { border-color:#a79cc9; background:rgba(239,237,249,.7); box-shadow:0 6px 26px #35406b1a; }
+.cg-light .cg-function-frame::before { background:linear-gradient(90deg,#e9e3f8,#f1eef9); border-bottom-color:#b7acd1; }
+.cg-light .cg-function-header { color:#3e315e; }
+.cg-light .cg-function-eyebrow { color:#76668e; }
+.cg-light .cg-function-icon { color:#7255a4; background:#dcd2ef; }
+.cg-light .cg-function-count { color:#61527c; background:#e8e1f6; border-color:#d0c4e5; }
+.cg-light .cg-overlay { background:#fffffff0; color:#30415a; border-color:#d5dfea; }
+.cg-light .cg-overlay.cg-error { color:#a12838; }
+.cg-light .react-flow__controls-button { background:#fff; fill:#344b67; }
+.cg-light .react-flow__edge-text { fill:#3a4b60; }
+
+/* Nested structured scopes (loop / condition) */
+.cg-nested-frame { background:rgba(32,42,62,.30); border-color:#668dbd; }
+.cg-nested-frame::before { background:linear-gradient(90deg,#243957,#18283c 75%); border-bottom-color:#52769b70; }
+.cg-frame-loop { border-color:#9e84e2; background:rgba(71,47,110,.20); }
+.cg-frame-loop::before { background:linear-gradient(90deg,#382b5a,#211d38 75%); }
+.cg-frame-condition { border-color:#d0a957; background:rgba(97,75,32,.16); }
+.cg-frame-condition::before { background:linear-gradient(90deg,#483921,#29271d 75%); }
+.cg-nested-frame .react-flow__handle { height:8px; width:8px; background:#a5bad2; border:1px solid #202a38; }
+.cg-light .cg-nested-frame { background:#eef2f8; }
+.cg-light .cg-frame-loop { background:#eee7fb; }
+.cg-light .cg-frame-condition { background:#fff2da; }
+
+/* Only external sequence arrows attach to a container frame. */
+.cg-function-frame > .cg-frame-input, .cg-function-frame > .cg-frame-output { width:9px; height:9px; background:#a9bbdb; border:2px solid #182238; z-index:4; }

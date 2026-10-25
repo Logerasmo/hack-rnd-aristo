@@ -28,7 +28,7 @@ public class GraphController {
         List<GraphDTO> result = new ArrayList<>();
         methods.forEach(x -> {
             GraphConverter converter = new GraphConverter();
-            //result.add(converter.convertMethod(x));
+            result.add(converter.convertMethod(x));
         });
         return result;
 

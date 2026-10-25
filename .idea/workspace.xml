@@ -4,9 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java">
+    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="&#9;graph 3.0">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/backend-java/target/production/backend-java/org/example/service/GraphConverter.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/target/production/backend-java/org/example/service/GraphConverter.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/controller/GraphController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/controller/GraphController.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/graph/CodeGraph.css" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/graph/CodeGraph.css" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/frontend/src/components/graph/CodeGraph.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/frontend/src/components/graph/CodeGraph.tsx" afterDir="false" />
     </list>
@@ -120,6 +120,7 @@
     <MESSAGE value="fix" />
     <MESSAGE value="&#9;deleted:    hackrnd/src/main/java/org/example/HackrndApplication.java" />
     <MESSAGE value="&#9;graph 2.0" />
-    <option name="LAST_COMMIT_MESSAGE" value="&#9;graph 2.0" />
+    <MESSAGE value="&#9;graph 3.0" />
+    <option name="LAST_COMMIT_MESSAGE" value="&#9;graph 3.0" />
   </component>
 </project>
