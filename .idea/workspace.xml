@@ -4,7 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="merged a lot2" />
+    <list default="true" id="39240f32-1634-4f20-8e3b-e28d2c6a530e" name="Changes" comment="merged a lot3">
+      <change beforePath="$PROJECT_DIR$/.idea/jarRepositories.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/jarRepositories.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/HackrndApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/HackrndApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/AiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/src/main/java/org/example/service/AiService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/target/production/backend-java/org/example/HackrndApplication.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/target/production/backend-java/org/example/HackrndApplication.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend-java/target/production/backend-java/org/example/controller/GraphController.class" beforeDir="false" afterPath="$PROJECT_DIR$/backend-java/target/production/backend-java/org/example/controller/GraphController.class" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -43,19 +52,41 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Application.HackrndApplication.executor&quot;: &quot;Run&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
-    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;D:/Coding/proj&quot;,
-    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
-    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
-    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;project.propVCSSupport.DirectoryMappings&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Application.HackrndApplication.executor": "Run",
+    "Application.JavaBack.executor": "Run",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "main",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "D:/Coding/proj",
+    "project.structure.last.edited": "Project",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "settings.editor.selected.configurable": "project.propVCSSupport.DirectoryMappings"
   }
-}</component>
+}]]></component>
+  <component name="RunManager" selected="Application.JavaBack">
+    <configuration name="JavaBack" type="Application" factoryName="Application">
+      <option name="ALTERNATIVE_JRE_PATH" value="openjdk-23" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <option name="MAIN_CLASS_NAME" value="org.example.HackrndApplication" />
+      <module name="backend-java" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="Unnamed" type="Application" factoryName="Application" nameIsGenerated="true">
+      <module name="backend-java" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <list>
+      <item itemvalue="Application.JavaBack" />
+      <item itemvalue="Application.Unnamed" />
+    </list>
+  </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task">
@@ -89,7 +120,15 @@
       <option name="project" value="LOCAL" />
       <updated>1792889306423</updated>
     </task>
-    <option name="localTasksCounter" value="4" />
+    <task id="LOCAL-00004" summary="merged a lot3">
+      <option name="closed" value="true" />
+      <created>1792889439571</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1792889439571</updated>
+    </task>
+    <option name="localTasksCounter" value="5" />
     <servers />
   </component>
   <component name="Vcs.Log.Tabs.Properties">
@@ -106,6 +145,7 @@
   <component name="VcsManagerConfiguration">
     <MESSAGE value="merged a lot" />
     <MESSAGE value="merged a lot2" />
-    <option name="LAST_COMMIT_MESSAGE" value="merged a lot2" />
+    <MESSAGE value="merged a lot3" />
+    <option name="LAST_COMMIT_MESSAGE" value="merged a lot3" />
   </component>
 </project>
