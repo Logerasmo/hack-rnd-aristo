@@ -80,25 +80,20 @@ function buildFileTree(files: FileNode[]): TreeNode[] {
   return root;
 }
 
-// Автоматическое определение имени главного класса из исходного кода Java
 function extractJavaClassName(code: string, fallbackFileName: string): string {
-  // 1. Ищем public class Name
   const publicClassMatch = code.match(/public\s+class\s+([A-Za-z_$][A-Za-z0-9_$]*)/);
   if (publicClassMatch && publicClassMatch[1]) {
     return publicClassMatch[1];
   }
 
-  // 2. Ищем любой class Name, если public нет
   const anyClassMatch = code.match(/class\s+([A-Za-z_$][A-Za-z0-9_$]*)/);
   if (anyClassMatch && anyClassMatch[1]) {
     return anyClassMatch[1];
   }
 
-  // 3. Фоллбэк на имя файла без .java
   return fallbackFileName.replace(/\.java$/i, '');
 }
 
-// Удаляем объявление package из кода при одиночной компиляции в корень tempDir, чтобы не было NoClassDefFoundError
 function stripPackageDeclaration(code: string): string {
   return code.replace(/^\s*package\s+[a-zA-Z0-9_.]+\s*;/m, '// package removed for flat compilation');
 }
@@ -481,7 +476,7 @@ export default function App() {
     }
   };
 
-  // ИСПРАВЛЕННАЯ КОМПИЛЯЦИЯ: работает с любым именем файла (pervay.java, vtoray.java) и любой папкой
+  // ПОТОКОВАЯ КОМПИЛЯЦИЯ НАПРЯМУЮ ЧЕРЕЗ ПОРТ 8081 (БЕЗ БУФЕРИЗАЦИИ VITE PROXY)
   const handleRun = async () => {
     if (!activeFile) return;
     setIsConsoleOpen(true);
@@ -492,82 +487,27 @@ export default function App() {
     setIsRunning(true);
 
     try {
-      // Вычисляем настоящее имя public class внутри активного файла (например, "Main" внутри "pervay.java")
       const actualMainClass = extractJavaClassName(activeFile.content, activeFile.name);
       const cleanedCode = stripPackageDeclaration(activeFile.content);
 
-      // Передаем файл под именем его public-класса (например, "Main.java") без вложенных папок,
-      // чтобы:
-      // 1) javac не ругался на "class Main is public, should be declared in a file named Main.java"
-      // 2) Files.writeString на бэкенде не падал с NoSuchFileException из-за несозданных подпапок
       const compileFilesMap: Record<string, string> = {
         [`${actualMainClass}.java`]: cleanedCode,
       };
 
-      // 1. Запрос к Java-бэкенду (/api/compile/run)
-      let runResponse = await fetch('/api/compile/run', {
+      // Обращаемся напрямую к 8081 в обход Vite proxy, чтобы SSE-чанки (System.out.print) приходили мгновенно
+      const streamResponse = await fetch('http://localhost:8081/api/compile/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           files: compileFilesMap,
           mainClass: actualMainClass,
-        }),
-      }).catch(() => null);
-
-      if (!runResponse || runResponse.status === 404) {
-        runResponse = await fetch('http://localhost:8081/api/compile/run', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            files: compileFilesMap,
-            mainClass: actualMainClass,
-          }),
-        }).catch(() => null);
-      }
-
-      if (runResponse && runResponse.ok) {
-        const result: { output?: string; error?: string } = await runResponse.json();
-        if (result.output) {
-          appendConsole(result.output, 'info');
-        }
-        if (result.error) {
-          appendConsole(result.error, 'error');
-        } else {
-          appendConsole('Process finished with exit code 0', 'success');
-        }
-        return;
-      }
-
-      // 2. Фоллбэк на потоковый эндпоинт (/api/compile/stream), если запущен Node server.js
-      let streamResponse = await fetch('/api/compile/stream', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          files: compileFilesMap,
-          mainClass: `${actualMainClass}.java`,
           sessionId: sessionIdRef.current,
         }),
-      }).catch(() => null);
+      });
 
-      if (!streamResponse || streamResponse.status === 404) {
-        streamResponse = await fetch('http://localhost:8081/api/compile/stream', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            files: compileFilesMap,
-            mainClass: `${actualMainClass}.java`,
-            sessionId: sessionIdRef.current,
-          }),
-        }).catch(() => null);
+      if (!streamResponse.ok || !streamResponse.body) {
+        throw new Error(`HTTP error ${streamResponse.status}`);
       }
-
-      if (!streamResponse || !streamResponse.ok) {
-        throw new Error(
-          'Compile endpoint not found (404). Make sure ExecutionController.java is uncommented and backend on port 8081 is running.'
-        );
-      }
-
-      if (!streamResponse.body) throw new Error('Stream reader unavailable');
 
       const reader = streamResponse.body.getReader();
       const decoder = new TextDecoder('utf-8');
@@ -578,22 +518,29 @@ export default function App() {
         if (done) break;
 
         buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split('\n\n');
-        buffer = parts.pop() || '';
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
 
-        for (const part of parts) {
-          if (part.startsWith('data: ')) {
-            const payload = JSON.parse(part.slice(6));
-            if (payload.type === 'stdout') {
-              appendConsole(payload.text, 'info');
-            } else if (payload.type === 'success') {
-              appendConsole(payload.text, 'success');
-            } else if (payload.type === 'info') {
-              appendConsole(payload.text, 'info');
-            } else if (payload.type === 'error') {
-              appendConsole(payload.text, 'error');
-            } else if (payload.type === 'done') {
-              if (payload.text) appendConsole(payload.text, 'info');
+        for (const rawLine of lines) {
+          const line = rawLine.trim();
+          if (line.startsWith('data:')) {
+            const jsonStr = line.slice(5).trim();
+            if (!jsonStr) continue;
+            try {
+              const payload = JSON.parse(jsonStr);
+              if (payload.type === 'stdout') {
+                appendConsole(payload.text, 'info');
+              } else if (payload.type === 'success') {
+                appendConsole(payload.text, 'success');
+              } else if (payload.type === 'info') {
+                appendConsole(payload.text, 'info');
+              } else if (payload.type === 'error') {
+                appendConsole(payload.text, 'error');
+              } else if (payload.type === 'done') {
+                if (payload.text) appendConsole(payload.text, 'success');
+              }
+            } catch (e) {
+              // Игнорируем неполные чанки
             }
           }
         }
@@ -606,24 +553,22 @@ export default function App() {
   };
 
   const handleSendInteractiveInput = async () => {
-    if (!stdinInput.trim() && stdinInput === '') return;
+    if (!isRunning) return;
     const valueToSend = stdinInput;
     setStdinInput('');
-    appendConsole(`> ${valueToSend}`, 'input');
+    appendConsole(`> ${valueToSend || '[EOF / Enter]'}`, 'input');
 
-    if (isRunning) {
-      try {
-        await fetch('http://localhost:8081/api/compile/input', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            sessionId: sessionIdRef.current,
-            input: valueToSend,
-          }),
-        });
-      } catch (err: any) {
-        appendConsole(`Failed to send input: ${err.message}`, 'error');
-      }
+    try {
+      await fetch('http://localhost:8081/api/compile/input', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          input: valueToSend,
+        }),
+      });
+    } catch (err: any) {
+      appendConsole(`Failed to send input: ${err.message}`, 'error');
     }
   };
 
